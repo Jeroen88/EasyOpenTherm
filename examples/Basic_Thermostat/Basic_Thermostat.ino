@@ -122,16 +122,16 @@ void loop() {
 
   
   time_t timestamp = millis();
-  if(timestamp - previousTimestamp > 1000) {
+  if(timestamp - previousTimestamp >= 1000) {
     float roomTemperature = bme.readTemperature();           // Read the sensor to get the current room temperature
-    Serial.printf("Room temperature is %.02f *C, room temperature setpoint is %.02f *C\n", roomTemperature, ROOM_TEMPERATURE_SETPOINT);
+    Serial.printf("Room temperature is %.01f *C, room temperature setpoint is %.01f *C\n", roomTemperature, ROOM_TEMPERATURE_SETPOINT);
 
     float dt = (timestamp - previousTimestamp) / 1000.0;     // Time between measurements in seconds
     float CHSetpoint = pid(ROOM_TEMPERATURE_SETPOINT, roomTemperature, previousTemperature, ierr, dt);
     previousTimestamp = timestamp;
     previousTemperature = roomTemperature;
 
-    Serial.printf("New CH setpoint computed by PID is %.02f\n", CHSetpoint);
+    Serial.printf("New CH setpoint computed by PID is %.01f\n", CHSetpoint);
 
 
     // First try to connect to the boiler to read it's capabilities. The boiler returns an 8 bit slaveFlags and each bit has a meaning. The bits are defined in enum class OpenTherm::CONFIGURATION_FLAGS
@@ -170,10 +170,18 @@ void loop() {
       Serial.printf("Failed to set CH temperature setpoint to %.01f *C\n", CHSetpoint);
     }
 
+    // Tell the boiler the desired room temperature (room temperature setpoint, optional?)
+    // This is done by writing this value to DATA-ID OpenTherm::WRITE_DATA_ID::ROOM_TEMPERATURE_SETPOINT
+    if(master.write(OpenTherm::WRITE_DATA_ID::ROOM_SETPOINT, ROOM_TEMPERATURE_SETPOINT)) {
+      Serial.printf("Room temperature setpoint set to %.01f *C\n", ROOM_TEMPERATURE_SETPOINT);
+    } else {
+      Serial.println("Failed to set room temperature setpoint");
+    }
+
     // Tell the boiler the current room temperature (optional?)
     // This is done by writing this value to DATA-ID OpenTherm::WRITE_DATA_ID::ROOM_TEMPERATURE
     if(thermostat.write(OpenTherm::WRITE_DATA_ID::ROOM_TEMPERATURE, roomTemperature)) {
-      Serial.printf("Room temperature set to %.02f *C\n", roomTemperature);
+      Serial.printf("Room temperature set to %.01f *C\n", roomTemperature);
     } else {
       Serial.println("Failed to set room temperature to sensor value");
     }
