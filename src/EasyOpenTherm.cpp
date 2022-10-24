@@ -186,7 +186,7 @@ OpenTherm::ERROR_CODES  OpenTherm::error() {
 bool                    OpenTherm::_execute(OTDataLinkLayer &                 data) {
   _lastError = ERROR_CODES::OK;
 
-  time_t startMillis = millis();
+  uint32_t startMillis = millis();
   for(;;) {
     if(millis() - startMillis >= _timeoutMs) {
       _lastError = ERROR_CODES::SEND_TIMEOUT;

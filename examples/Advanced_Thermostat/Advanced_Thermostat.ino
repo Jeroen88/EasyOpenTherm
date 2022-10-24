@@ -116,12 +116,12 @@ void loop() {
   static OpenTherm thermostat(OT_RX_PIN, OT_TX_PIN);
 
   // static variables used by the PID controller
-  static time_t previousTimestamp = millis();                // Previous timestamp
+  static uint32_t previousTimestamp = millis();                // Previous timestamp
   static float previousTemperature = bme.readTemperature();  // Previous temperature
   static float ierr = 0;                                     // Integral error
 
   
-  time_t timestamp = millis();
+  uint32_t timestamp = millis();
   if(timestamp - previousTimestamp >= 1000) {
     float roomTemperature = bme.readTemperature();           // Read the sensor to get the current room temperature
     Serial.printf("Room temperature is %.02f *C, room temperature setpoint is %.02f *C\n", roomTemperature, ROOM_TEMPERATURE_SETPOINT);

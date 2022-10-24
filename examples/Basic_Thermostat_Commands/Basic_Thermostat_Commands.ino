@@ -58,9 +58,9 @@ void loop() {
   // Create an OpenTherm thermostat (boiler is secondary) with OT_RX_PIN to receive data from boiler and OT_TX_PIN to send data to boiler
   // Only one OpenTherm object may be created!
   static OpenTherm thermostat(OT_RX_PIN, OT_TX_PIN);
-  static time_t previousTimestamp = millis();                // Previous timestamp
+  static uint32_t previousTimestamp = millis();                // Previous timestamp
   
-  time_t timestamp = millis();
+  uint32_t timestamp = millis();
   if(timestamp - previousTimestamp >= 1000) {
 
     // primaryFlags is used to tell the secondary device (boiler) what available services (Central heating, cooling, domestic hot water) it wants to make use of, if present
