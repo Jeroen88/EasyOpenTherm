@@ -17,6 +17,9 @@
  *
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ *    Primary: thermostat
+ *    Secondary: boiler or HVAC
 */
 
 
@@ -34,19 +37,19 @@ public:
                           OpenTherm(uint8_t                   rxPin,
                                     uint8_t                   txPin,
                                     time_t                    timeoutMs = 900,
-                                    bool                      master = true);
+                                    bool                      primary = true);
 
                           ~OpenTherm();
 
-  bool                    status(uint8_t &                    slaveFlags);
+  bool                    status(uint8_t &                    secondaryFlags);
 
-  bool                    status(uint8_t                      masterFlags,
-                                  uint8_t &                   slaveFlags);
+  bool                    status(uint8_t                      primaryFlags,
+                                  uint8_t &                   secondaryFlags);
 
 
   enum class    READ_WRITE_DATA_ID {
     // Class 1 : Control and Status Information
-    STATUS                          = 0,        // flag8, flag8     Mandatory: Master status, slave status
+    STATUS                          = 0,        // flag8, flag8     Mandatory; Primary status, secondary status
 
     // Class 3 : Remote Commands
     COMMAND_CODE                    = 4,        // u8, u8           Command code / Response to command
@@ -55,10 +58,10 @@ public:
     // Where applicable and available flags and masks are also defined below
 
     // HVAC specific DATA-IDs (ventilation / heat recovery)
-    HVAC_STATUS                     = 70,       // flag8, flag8     Master status, slave status
+    HVAC_STATUS                     = 70,       // flag8, flag8     Primary status, secondary status
 
     // Solar specific DATA-IDs
-    SOLAR_STATUS                    = 101,      // flag8, flag8?    MSB Master Solar Storage Mode, LSB Slave Solar Storage Mode
+    SOLAR_STATUS                    = 101,      // flag8, flag8?    MSB Primary Solar Storage Mode, LSB Secondary Solar Storage Mode
   };
 
 
@@ -68,18 +71,18 @@ public:
     OEM_DIAGNOSTIC                  = 115,      // u16              An OEM-specific diagnostic/service code
 
     // Class 2 : Configuration Information
-    SLAVE_CONFIGURATION             = 3,        // flag8, u8        Mandatory: Slave Configuration Flags / MemberID Code of the slave
-    OPENTHERM_VERSION_SLAVE         = 125,      // f8.8             The implemented version of the OpenTherm Protocol Specification in the slave
-    SLAVE_PRODUCT_VERSION           = 127,      // u8, u8           The slave device product version number and type as defined by the manufacturer
+    SECONDARY_CONFIGURATION         = 3,        // flag8, u8        Mandatory; Secondary Configuration Flags / MemberID Code of the secondary device
+    OPENTHERM_VERSION_SECONDARY     = 125,      // f8.8             The implemented version of the OpenTherm Protocol Specification in the secondary device
+    SECONDARY_PRODUCT_VERSION       = 127,      // u8, u8           The secondary device product version number and type as defined by the manufacturer
 
     // Class 4 : Sensor and Informational Data
-    RELATIVE_MODULATION_LEVEL       = 17,       // f8.8             Mandatory: Percent modulation between min and max modulation levels. i.e. 0% = Minimum modulation level and 100% = Maximum modulation level (%)
+    RELATIVE_MODULATION_LEVEL       = 17,       // f8.8             Mandatory; Percent modulation between min and max modulation levels. i.e. 0% = Minimum modulation level and 100% = Maximum modulation level (%)
     CH_WATER_PRESSURE               = 18,       // f8.8             Water pressure of the boiler CH circuit (bar)
     DHW_FLOW_RATE                   = 19,       // f8.8             Water flow rate through the DHW circuit (l/min)
     DAY_TIME                        = 20,       // special, u8      Day of Week and Time of Day; special: bit 7,6,5 day of week (1=Monday, etc...., 0=no DoW info available); bit 4,3,2,1,0 hours, LSB is minutes
     DATE                            = 21,       // u8, u8           Calendar date: Month, Day of month
     YEAR                            = 22,       // u16              Calendar year; note : 1999-2099 will normally be sufficient
-    BOILER_WATER_TEMP               = 25,       // f8.8             Mandatory: Flow water temperature from boiler (°C)
+    BOILER_WATER_TEMP               = 25,       // f8.8             Mandatory; Flow water temperature from boiler (°C)
     DHW_TEMPERATURE                 = 26,       // f8.8             Domestic hot water temperature (°C)
     OUTSIDE_TEMPERATURE             = 27,       // f8.8             Outside air temperature (°C)
     RETURN_WATER_TEMPERATURE        = 28,       // f8.8             Return water temperature to boiler (°C)
@@ -88,26 +91,26 @@ public:
     FLOW_TEMPERATURE_CH2            = 31,       // f8.8             Flow water temperature of the second central heating circuit (°C)
     DHW2_TEMPERATURE                = 32,       // f8.8             Domestic hot water temperature 2 (°C)
     EXHAUST_TEMPERATURE             = 33,       // s16              Exhaust temperature (°C)
-    BURNER_STARTS                   = 116,      // u16              Number of starts burner. Reset by writing zero is optional for slave
-    CH_PUMP_STARTS                  = 117,      // u16              Number of starts CH pump. Reset by writing zero is optional for slave
-    DHW_PUMP_VALVE_STARTS           = 118,      // u16              Number of starts DHW pump/valve. Reset by writing zero is optional for slave
-    DHW_BURNER_STARTS               = 119,      // u16              Number of starts burner in DHW mode. Reset by writing zero is optional for slave
-    BURNER_OPERATION_HOURS          = 120,      // u16              Number of hours that burner is in operation (i.e. flame on). Reset by writing zero is optional for slave
-    CH_PUMP_OPERATION_HOURS         = 121,      // u16              Number of hours that CH pump has been running. Reset by writing zero is optional for slave
-    DHW_PUMP_VALVE_OPERATION_HOURS  = 122,      // u16              Number of hours that DHW pump has been running or DHW valve has been opened. Reset by writing zero is optional for slave
-    DHW_BURNER_OPERATION_HOURS      = 123,      // u16              Number of hours that burner is in operation during DHW mode. Reset by writing zero is optional for slave
+    BURNER_STARTS                   = 116,      // u16              Number of starts burner. Reset by writing zero is optional for the secondary device
+    CH_PUMP_STARTS                  = 117,      // u16              Number of starts CH pump. Reset by writing zero is optional for the secondary device
+    DHW_PUMP_VALVE_STARTS           = 118,      // u16              Number of starts DHW pump/valve. Reset by writing zero is optional for the secondary device
+    DHW_BURNER_STARTS               = 119,      // u16              Number of starts burner in DHW mode. Reset by writing zero is optional for the secondary device
+    BURNER_OPERATION_HOURS          = 120,      // u16              Number of hours that burner is in operation (i.e. flame on). Reset by writing zero is optional for the secondary device
+    CH_PUMP_OPERATION_HOURS         = 121,      // u16              Number of hours that CH pump has been running. Reset by writing zero is optional for the secondary device
+    DHW_PUMP_VALVE_OPERATION_HOURS  = 122,      // u16              Number of hours that DHW pump has been running or DHW valve has been opened. Reset by writing zero is optional for the secondary device
+    DHW_BURNER_OPERATION_HOURS      = 123,      // u16              Number of hours that burner is in operation during DHW mode. Reset by writing zero is optional for the secondary device
 
     // Class 5 : Pre-Defined Remote Boiler Parameters
     REMOTE_PARAMETER                = 6,        // flag8, flag8     Remote boiler parameter transfer-enable flags, read/write flags
     DHW_SETPOINT_BOUNDS             = 48,       // s8, s8           Upper bound for adjustment of DHW setp (°C), Lower bound for adjustment of DHW setp (°C)
     CH_SETPOINT_BOUNDS              = 49,       // s8, s8           Upper bound for adjustment of maxCH setp (°C), Lower bound for adjustment of maxCH setp (°C)
-    OTC_CURVE_BOUNDS                = 50,       // s8, s8           upp/low bnd
+    OTC_CURVE_BOUNDS                = 50,       // s8, s8           Upper / lower bound
     DHW_SETPOINT                    = 56,       // f8.8             Domestic hot water temperature setpoint (Remote parameter 1) (°C)
     MAX_CH_WATER_SETPOINT           = 57,       // f8.8             Maximum allowable CH water setpoint (Remote parameter 2) (°C) 
     OTC_CURVE_RATIO                 = 58,       // f8.8             OTC heat curve ratio (Remote parameter 3) (°C)
 
-    // Class 6 : Transparent Slave Parameters
-    NUMBER_OF_TSPS                  = 10,       // u8, u8           Number of transparent-slave-parameter supported by the slave device, -Reserved-
+    // Class 6 : Transparent Secondary Parameters
+    NUMBER_OF_TSPS                  = 10,       // u8, u8           Number of transparent-secondary-parameter supported by the secondary device, -Reserved-
     TSP_COMMAND                     = 11,       // u8, u8           Index number of following TSP, Value of the referenced TSP
 
     // Class 7 : Fault History Data
@@ -132,9 +135,9 @@ public:
     HVAC_RELATIVE_VENT_SETPOINT     = 71,       // f8.8             Relative ventilation position (0-100%)
     HVAC_FAULT_FLAGS                = 72,       // flag8, u8        Application-specific fault flags and OEM fault code
     HVAC_OEM_DIAGNOSTIC_CODE        = 73,       // u16              An OEM specific diagnostic/service code
-    HVAC_SLAVE_CONFIGURATION        = 74,       // flag8, u8        Slave Configuration Flags / MemberID Code of the slave
-    HVAC_OPENTHERM_VERSION_SLAVE    = 75,       // f8.8             The implemented version of the OpenTherm Protocol Specification in the slave
-    HVAC_SLAVE_PRODUCT_VERSION      = 76,       // u8, u8           The slave device product version number and type as defined by the manufacturer
+    HVAC_SECONDARY_CONFIGURATION    = 74,       // flag8, u8        Secondary Configuration Flags / MemberID Code of the secondary device
+    HVAC_OPENTHERM_VERSION_SECONDARY= 75,       // f8.8             The implemented version of the OpenTherm Protocol Specification in the secondary device
+    HVAC_SECONDARY_PRODUCT_VERSION  = 76,       // u8, u8           The secondary device product version number and type as defined by the manufacturer
     HVAC_RELATIVE_VENTILATION       = 77,       // f8.8             Relative ventilation (0-100%)
     HVAC_RELATIVE_HUMIDITY_EXHAUST  = 78,       // f8.8             Relative humidity exhaust air (0-100%)
     HVAC_CO2_LEVEL_EXHAUST_AIR      = 79,       // ?                CO2 level exhaust air (0-2000 ppm)
@@ -146,7 +149,7 @@ public:
     HVAC_SUPPLY_FAN_SPEED           = 85,       // u16?             Supply fan speed (rpm)
     HVAC_REMOTE_PARAMETER           = 86,       // u8, u8?          MSB Remote parameter transfer enable nominal ventilation value, LSB Remote parameter read/write nominal ventilation value
     HVAC_NOMINAL_RELATIVE_VENTILATION = 87,     // f8.8             Nominal relative value for ventilation (0-100%)
-    HVAC_NUMBER_OF_TSPS             = 88,       // u8, u8?          Number of transparent-slave-parameter supported by the slave device, -Reserved-
+    HVAC_NUMBER_OF_TSPS             = 88,       // u8, u8?          Number of transparent-secondary-parameter supported by the secondary device, -Reserved-
     HVAC_TSP_COMMAND                = 89,       // u8, u8           Index number of following TSP, Value of the referenced TSP
     HVAC_FAULT_BUFFER_SIZE          = 90,       // u8, u8?          The size of the fault history buffer
     HVAC_FAULT_BUFFER_DATA          = 91,       // u8, u8           Index number of Fault Buffer entry, Value of the referenced Fault Buffer entry
@@ -155,9 +158,9 @@ public:
 
     // Solar specific DATA-IDs
     SOLAR_FAULT_FLAGS               = 102,      // flag8, u8        Application-specific fault flags and OEM fault code
-    SOLAR_SLAVE_CONFIGURATION       = 103,      // flag8, u8        Slave Configuration Flags / MemberID Code of the slave
-    SOLAR_SLAVE_PRODUCT_VERSION     = 104,      // u8, u8           The slave device product version number and type as defined by the manufacturer
-    SOLAR_NUMBER_OF_TSPS            = 105,       // u8, u8?         Number of transparent-slave-parameter supported by the slave device, -Reserved-
+    SOLAR_SECONDARY_CONFIGURATION   = 103,      // flag8, u8        Secondary Configuration Flags / MemberID Code of the secondary device
+    SOLAR_SECONDARY_PRODUCT_VERSION = 104,      // u8, u8           The secondary device product version number and type as defined by the manufacturer
+    SOLAR_NUMBER_OF_TSPS            = 105,       // u8, u8?         Number of transparent-secondary-parameter supported by the secondary device, -Reserved-
     SOLAR_TSP_COMMAND               = 106,       // u8, u8          Index number of following TSP, Value of the referenced TSP
     SOLAR_FAULT_BUFFER_SIZE         = 107,       // u8, u8?         The size of the fault history buffer
     SOLAR_FAULT_BUFFER_DATA         = 108,       // u8, u8          Index number of Fault Buffer entry, Value of the referenced Fault Buffer entry
@@ -176,13 +179,13 @@ public:
 
   enum class    WRITE_DATA_ID {
     // Class 1 : Control and Status Information
-    CONTROL_SETPOINT_CH             = 1,        // f8.8             Mandatory: Control setpoint (CH  water temperature setpoint) (°C)
+    CONTROL_SETPOINT_CH             = 1,        // f8.8             Mandatory; Control setpoint (CH  water temperature setpoint) (°C)
     CONTROL_SETPOINT_CH2            = 8,        // f8.8             Control setpoint for 2nd CH circuit (°C)
 
     // Class 2 : Configuration Information
-    MASTER_CONFIGURATION            = 2,        // flag8, u8        Master Configuration Flags / MemberID Code of the master
-    OPENTHERM_VERSION_MASTER        = 124,      // f8.8             The implemented version of the OpenTherm Protocol Specification in the master
-    MASTER_PRODUCT_VERSION          = 126,      // u8, u8           The master device product version number and type as defined by the manufacturer
+    PRIMARY_CONFIGURATION           = 2,        // flag8, u8        Primary Configuration Flags / MemberID Code of the primary device
+    OPENTHERM_VERSION_PRIMARY       = 124,      // f8.8             The implemented version of the OpenTherm Protocol Specification in the primary device
+    PRIMARY_PRODUCT_VERSION         = 126,      // u8, u8           The primary device product version number and type as defined by the manufacturer
 
     // Class 4 : Sensor and Informational Data
     ROOM_SETPOINT                   = 16,       // f8.8             Current room temperature setpoint (°C)
@@ -191,26 +194,26 @@ public:
     YEAR                            = 22,       // u16              Calendar year; note : 1999-2099 will normally be sufficient
     ROOM_SETPOINT_CH2               = 23,       // f8.8             Current room Setpoint for 2nd CH circuit (°C)
     ROOM_TEMPERATURE                = 24,       // f8.8             Current sensed room temperature (°C)
-    BURNER_STARTS                   = 116,      // u16              Number of starts burner. Reset by writing zero is optional for slave
-    CH_PUMP_STARTS                  = 117,      // u16              Number of starts CH pump. Reset by writing zero is optional for slave
-    DHW_PUMP_VALVE_STARTS           = 118,      // u16              Number of starts DHW pump/valve. Reset by writing zero is optional for slave
-    DHW_BURNER_STARTS               = 119,      // u16              Number of starts burner in DHW mode. Reset by writing zero is optional for slave
-    BURNER_OPERATION_HOURS          = 120,      // u16              Number of hours that burner is in operation (i.e. flame on). Reset by writing zero is optional for slave
-    CH_PUMP_OPERATION_HOURS         = 121,      // u16              Number of hours that CH pump has been running. Reset by writing zero is optional for slave
-    DHW_PUMP_VALVE_OPERATION_HOURS  = 122,      // u16              Number of hours that DHW pump has been running or DHW valve has been opened. Reset by writing zero is optional for slave
-    DHW_BURNER_OPERATION_HOURS      = 123,      // u16              Number of hours that burner is in operation during DHW mode. Reset by writing zero is optional for slave
+    BURNER_STARTS                   = 116,      // u16              Number of starts burner. Reset by writing zero is optional for the secondary device
+    CH_PUMP_STARTS                  = 117,      // u16              Number of starts CH pump. Reset by writing zero is optional for the secondary device
+    DHW_PUMP_VALVE_STARTS           = 118,      // u16              Number of starts DHW pump/valve. Reset by writing zero is optional for the secondary device
+    DHW_BURNER_STARTS               = 119,      // u16              Number of starts burner in DHW mode. Reset by writing zero is optional for the secondary device
+    BURNER_OPERATION_HOURS          = 120,      // u16              Number of hours that burner is in operation (i.e. flame on). Reset by writing zero is optional for the secondary device
+    CH_PUMP_OPERATION_HOURS         = 121,      // u16              Number of hours that CH pump has been running. Reset by writing zero is optional for the secondary device
+    DHW_PUMP_VALVE_OPERATION_HOURS  = 122,      // u16              Number of hours that DHW pump has been running or DHW valve has been opened. Reset by writing zero is optional for the secondary device
+    DHW_BURNER_OPERATION_HOURS      = 123,      // u16              Number of hours that burner is in operation during DHW mode. Reset by writing zero is optional for the secondary device
 
     // Class 5 : Pre-Defined Remote Boiler Parameters
     DHW_SETPOINT                    = 56,       // f8.8             Domestic hot water temperature setpoint (Remote parameter 1) (°C)
     MAX_CH_WATER_SETPOINT           = 57,       // f8.8             Maximum allowable CH water setpoint (Remote parameter 2) (°C) 
     OTC_CURVE_RATIO                 = 58,       // f8.8             OTC heat curve ratio (Remote parameter 3) (°C)
 
-    // Class 6 : Transparent Slave Parameters
+    // Class 6 : Transparent Secondary Parameters
     TSP_COMMAND                     = 11,       // u8, u8           Index number of following TSP, Value of the referenced TSP
 
     // Class 8 : Control of Special Applications
     COOLING_CONTROL                 = 7,        // f8.8             Signal for cooling plant (%)
-    MAX_MODULATION_LEVEL            = 14,       // f8.8             Mandatory: Maximum relative boiler modulation level setting for sequencer and off-low & pump control applications (%)
+    MAX_MODULATION_LEVEL            = 14,       // f8.8             Mandatory; Maximum relative boiler modulation level setting for sequencer and off-low & pump control applications (%)
 
 
     // Incomplete information for DATA-IDs below. If these DATA-IDs are R, W or R/W is unknown. Also the data type is unknown and deducted from the name
@@ -220,21 +223,21 @@ public:
 
 
   enum class    STATUS_FLAGS {
-    // Master is MSB
-    MASTER_CH_ENABLE                = (0b00000001),           // CH is Central Heating
-    MASTER_DHW_ENABLE               = (0b00000010),           // DHW is Domestic Hot Water
-    MASTER_COOLING_ENABLE           = (0b00000100),
-    MASTER_OTC_ENABLE               = (0b00001000),           // OTC is Outside Temperature Compensation
-    MASTER_CH2_ENABLE               = (0b00010000),
+    // Primary device is MSB
+    PRIMARY_CH_ENABLE               = (0b00000001),           // CH is Central Heating
+    PRIMARY_DHW_ENABLE              = (0b00000010),           // DHW is Domestic Hot Water
+    PRIMARY_COOLING_ENABLE          = (0b00000100),
+    PRIMARY_OTC_ENABLE              = (0b00001000),           // OTC is Outside Temperature Compensation
+    PRIMARY_CH2_ENABLE              = (0b00010000),
 
-    // Slave is LSB
-    SLAVE_FAULT_INDICATION          = (0b00000001),
-    SLAVE_CH_MODE                   = (0b00000010),
-    SLAVE_DHW_MODE                  = (0b00000100),
-    SLAVE_FLAME_STATUS              = (0b00001000),
-    SLAVE_COOLING_STATUS            = (0b00010000),
-    SLAVE_CH2_MODE                  = (0b00100000),
-    SLAVE_DIAGNOSTIC_IND            = (0b01000000),
+    // Secondary device is LSB
+    SECONDARY_FAULT_INDICATION      = (0b00000001),
+    SECONDARY_CH_MODE               = (0b00000010),
+    SECONDARY_DHW_MODE              = (0b00000100),
+    SECONDARY_FLAME_STATUS          = (0b00001000),
+    SECONDARY_COOLING_STATUS        = (0b00010000),
+    SECONDARY_CH2_MODE              = (0b00100000),
+    SECONDARY_DIAGNOSTIC_IND        = (0b01000000),
   };
 
 
@@ -274,12 +277,12 @@ public:
 
 
   enum class    CONFIGURATION_FLAGS {
-    SLAVE_DHW_PRESENT               = (0b00000001),
-    SLAVE_CONTROL_TYPE              = (0b00000010),
-    SLAVE_COOLING                   = (0b00000100),
-    SLAVE_DHW                       = (0b00001000),  
-    SLAVE_LOW_OFF_PUMP_CTRL         = (0b00010000),
-    SLAVE_CH2_PRESENT               = (0b00100000),
+    SECONDARY_DHW_PRESENT           = (0b00000001),
+    SECONDARY_CONTROL_TYPE          = (0b00000010),
+    SECONDARY_COOLING               = (0b00000100),
+    SECONDARY_DHW                   = (0b00001000),  
+    SECONDARY_LOW_OFF_PUMP_CTRL     = (0b00010000),
+    SECONDARY_CH2_PRESENT           = (0b00100000),
   };
 
 
@@ -305,30 +308,30 @@ public:
 
 
   enum class    HVAC_STATUS_FLAGS {
-    // Master is MSB
-    MASTER_VENTILATION_ENABLE       = (0b00000001),
-    MASTER_BYPASS_POSTION           = (0b00000010),
-    MASTER__BYPASS_MODE             = (0b00000100),
-    MASTER_FREE_VENTILATION_MODE    = (0b00001000),
+    // Primary device is MSB
+    PRIMARY_VENTILATION_ENABLE      = (0b00000001),
+    PRIMARY_BYPASS_POSTION          = (0b00000010),
+    PRIMARY_BYPASS_MODE             = (0b00000100),
+    PRIMARY_FREE_VENTILATION_MODE   = (0b00001000),
 
-    // Slave is LSB
-    SLAVE_FAULT_INDICATION          = (0b00000001),
-    SLAVE_VENTILATION_MODE          = (0b00000010),
-    SLAVE_BYPASS_STATUS             = (0b00000100),
-    SLAVE_BYPASS_AUTOMATIC_STATUS   = (0b00001000),
-    SLAVE_FREE_VENTILATION_MODE     = (0b00010000),
-    SLAVE_DIAGNOSTIC_IND            = (0b00100000),
+    // Secondary device is LSB
+    SECONDARY_FAULT_INDICATION      = (0b00000001),
+    SECONDARY_VENTILATION_MODE      = (0b00000010),
+    SECONDARY_BYPASS_STATUS         = (0b00000100),
+    SECONDARY_BYPASS_AUTOMATIC_STATUS= (0b00001000),
+    SECONDARY_FREE_VENTILATION_MODE = (0b00010000),
+    SECONDARY_DIAGNOSTIC_IND        = (0b00100000),
   };
 
 
   enum class    SOLAR_STATUS_FLAGS {
-    // Master is MSB
-    MASTER_MODE                     = (0b00000111),
+    // Priamry device is MSB
+    PRIMARY_MODE                    = (0b00000111),
 
-    // Slave is LSB
-    SLAVE_FAULT_INDICATION          = (0b00000001),
-    SLAVE_MODE                      = (0b00001110),
-    SLAVE_STATUS                    = (0b00110000),
+    // Secondary device is LSB
+    SECONDARY_FAULT_INDICATION      = (0b00000001),
+    SECONDARY_MODE                  = (0b00001110),
+    SECONDARY_STATUS                = (0b00110000),
   };
 
 
@@ -339,8 +342,8 @@ public:
   };
 
 
-  enum class    SOLAR_SLAVE_CONFIGURATION_FLAGS {
-    SLAVE_SYSTEM_TYPE               = (0b00000001),
+  enum class    SOLAR_SECONDARY_CONFIGURATION_FLAGS {
+    SECONDARY_SYSTEM_TYPE           = (0b00000001),
   };
 
 
@@ -396,7 +399,7 @@ private:
   uint8_t                 _txPin;
 
   time_t                  _timeoutMs;
-  bool                    _master;
+  bool                    _primary;
 
   ERROR_CODES             _lastError;
 };
@@ -405,15 +408,15 @@ private:
 class                     OTDataLinkLayer {
 public:
   enum class              MSG_TYPE {
-    MASTER_TO_SLAVE_READ_DATA       = (0b0000000UL << 24),        // value >> 28 := 0
-    MASTER_TO_SLAVE_WRITE_DATA      = (0b0010000UL << 24),        // value >> 28 := 1
-    MASTER_TO_SLAVE_INVALID_DATA    = (0b0100000UL << 24),        // value >> 28 := 2
-    MASTER_TO_SLAVE_RESERVED        = (0b0110000UL << 24),        // value >> 28 := 3
+    PRIMARY_TO_SECONDARY_READ_DATA       = (0b0000000UL << 24),        // value >> 28 := 0
+    PRIMARY_TO_SECONDARY_WRITE_DATA      = (0b0010000UL << 24),        // value >> 28 := 1
+    PRIMARY_TO_SECONDARY_INVALID_DATA    = (0b0100000UL << 24),        // value >> 28 := 2
+    PRIMARY_TO_SECONDARY_RESERVED        = (0b0110000UL << 24),        // value >> 28 := 3
 
-    SLAVE_TO_MASTER_READ_ACK        = (0b1000000UL << 24),        // value >> 28 := 4
-    SLAVE_TO_MASTER_WRITE_ACK       = (0b1010000UL << 24),        // value >> 28 := 5
-    SLAVE_TO_MASTER_DATA_INVALID    = (0b1100000UL << 24),        // value >> 28 := 6
-    SLAVE_TO_MASTER_UNKNOWN_DATA_ID = (0b1110000UL << 24)         // value >> 28 := 7
+    SECONDARY_TO_PRIMARY_READ_ACK        = (0b1000000UL << 24),        // value >> 28 := 4
+    SECONDARY_TO_PRIMARY_WRITE_ACK       = (0b1010000UL << 24),        // value >> 28 := 5
+    SECONDARY_TO_PRIMARY_DATA_INVALID    = (0b1100000UL << 24),        // value >> 28 := 6
+    SECONDARY_TO_PRIMARY_UNKNOWN_DATA_ID = (0b1110000UL << 24)         // value >> 28 := 7
   };
 
                           OTDataLinkLayer();
@@ -463,7 +466,7 @@ class           OTPhysicalLayer {
 public:
                           OTPhysicalLayer(uint8_t             rxPin,
                                           uint8_t             txPin,
-                                          bool                master);
+                                          bool                primary);
 
                           ~OTPhysicalLayer();
 
@@ -490,7 +493,7 @@ private:
 
   uint8_t                 _rxPin;
   uint8_t                 _txPin;
-  bool                    _master;
+  bool                    _primary;
 
   enum class              STATE {
                           INVALID,

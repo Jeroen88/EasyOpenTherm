@@ -28,8 +28,8 @@
                         OpenTherm::OpenTherm(uint8_t                          rxPin,
                                               uint8_t                         txPin,
                                               time_t                          timeoutMs,
-                                              bool                            master): _rxPin(rxPin), _txPin(txPin), _timeoutMs(timeoutMs), _master(master) {
-  _OTP = new OTPhysicalLayer(_rxPin, _txPin, master);
+                                              bool                            primary): _rxPin(rxPin), _txPin(txPin), _timeoutMs(timeoutMs), _primary(primary) {
+  _OTP = new OTPhysicalLayer(_rxPin, _txPin, primary);
 
   if(!_OTP) Serial.println("OpenTherm Out of Memory, fail on assert()");
   assert(_OTP != NULL);     // check for Out of Memory
@@ -41,24 +41,24 @@
 }
 
 
-bool                    OpenTherm::status(uint8_t &                           slaveFlags) {
-  uint8_t masterFlags = uint8_t(OpenTherm::STATUS_FLAGS::MASTER_CH_ENABLE) | uint8_t(OpenTherm::STATUS_FLAGS::MASTER_DHW_ENABLE) | uint8_t(OpenTherm::STATUS_FLAGS::MASTER_COOLING_ENABLE) | uint8_t(OpenTherm::STATUS_FLAGS::MASTER_OTC_ENABLE);
+bool                    OpenTherm::status(uint8_t &                           secondaryFlags) {
+  uint8_t primaryFlags = uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_CH_ENABLE) | uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_DHW_ENABLE) | uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_COOLING_ENABLE) | uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_OTC_ENABLE);
 
-  return status(masterFlags, slaveFlags);
+  return status(primaryFlags, secondaryFlags);
 }
 
 
-bool                    OpenTherm::status(uint8_t                             masterFlags,
-                                          uint8_t &                           slaveFlags) {
-  slaveFlags = 0x00;        // See OpenTherm Protocol Specification v2.2 page 25
-  return readWrite(READ_WRITE_DATA_ID::STATUS, masterFlags, slaveFlags);  
+bool                    OpenTherm::status(uint8_t                             primaryFlags,
+                                          uint8_t &                           secondaryFlags) {
+  secondaryFlags = 0x00;        // See OpenTherm Protocol Specification v2.2 page 25
+  return readWrite(READ_WRITE_DATA_ID::STATUS, primaryFlags, secondaryFlags);  
 }
 
 
 bool                    OpenTherm::read(READ_DATA_ID                          msgID,
                                         uint16_t &                            value) {
   OTDataLinkLayer data;
-  data.set(OTDataLinkLayer::MSG_TYPE::MASTER_TO_SLAVE_READ_DATA, uint8_t(msgID), 0x0000);
+  data.set(OTDataLinkLayer::MSG_TYPE::PRIMARY_TO_SECONDARY_READ_DATA, uint8_t(msgID), 0x0000);
 
   if(_execute(data)) {
     value = data.value();
@@ -73,7 +73,7 @@ bool                    OpenTherm::read(READ_DATA_ID                          ms
 bool                    OpenTherm::read(READ_DATA_ID                          msgID,
                                         int16_t &                             value) {    // signed integer
   OTDataLinkLayer data;
-  data.set(OTDataLinkLayer::MSG_TYPE::MASTER_TO_SLAVE_READ_DATA, uint8_t(msgID), 0x0000);
+  data.set(OTDataLinkLayer::MSG_TYPE::PRIMARY_TO_SECONDARY_READ_DATA, uint8_t(msgID), 0x0000);
 
   if(_execute(data)) {
     value = int16_t(data.value());
@@ -89,7 +89,7 @@ bool                    OpenTherm::read(READ_DATA_ID                          ms
                                         uint8_t &                             valueMSB,
                                         uint8_t &                             valueLSB) {
   OTDataLinkLayer data;
-  data.set(OTDataLinkLayer::MSG_TYPE::MASTER_TO_SLAVE_READ_DATA, uint8_t(msgID), 0x0000);
+  data.set(OTDataLinkLayer::MSG_TYPE::PRIMARY_TO_SECONDARY_READ_DATA, uint8_t(msgID), 0x0000);
 
   if(_execute(data)) {
     valueMSB = data.valueMSB();
@@ -106,7 +106,7 @@ bool                    OpenTherm::read(READ_DATA_ID                          ms
                                         int8_t &                              valueMSB,         // signed intergers
                                         int8_t &                              valueLSB) {
   OTDataLinkLayer data;
-  data.set(OTDataLinkLayer::MSG_TYPE::MASTER_TO_SLAVE_READ_DATA, uint8_t(msgID), 0x0000);
+  data.set(OTDataLinkLayer::MSG_TYPE::PRIMARY_TO_SECONDARY_READ_DATA, uint8_t(msgID), 0x0000);
 
   if(_execute(data)) {
     valueMSB = int8_t(data.valueMSB());
@@ -122,7 +122,7 @@ bool                    OpenTherm::read(READ_DATA_ID                          ms
 bool                    OpenTherm::read(READ_DATA_ID                          msgID,
                                         float &                               value) {
   OTDataLinkLayer data;
-  data.set(OTDataLinkLayer::MSG_TYPE::MASTER_TO_SLAVE_READ_DATA, uint8_t(msgID), 0x0000);
+  data.set(OTDataLinkLayer::MSG_TYPE::PRIMARY_TO_SECONDARY_READ_DATA, uint8_t(msgID), 0x0000);
 
   if(_execute(data)) {
     value = float(data.value()) / 256.0;
@@ -137,7 +137,7 @@ bool                    OpenTherm::read(READ_DATA_ID                          ms
 bool                    OpenTherm::write(WRITE_DATA_ID                        msgID,
                                           uint16_t                            value) {
   OTDataLinkLayer data;
-  data.set(OTDataLinkLayer::MSG_TYPE::MASTER_TO_SLAVE_WRITE_DATA, uint8_t(msgID), value);
+  data.set(OTDataLinkLayer::MSG_TYPE::PRIMARY_TO_SECONDARY_WRITE_DATA, uint8_t(msgID), value);
 
   return _execute(data);
 }
@@ -147,7 +147,7 @@ bool                    OpenTherm::write(WRITE_DATA_ID                        ms
                                           uint8_t                             valueMSB,
                                           uint8_t                             valueLSB) {
   OTDataLinkLayer data;
-  data.set(OTDataLinkLayer::MSG_TYPE::MASTER_TO_SLAVE_WRITE_DATA, uint8_t(msgID), valueMSB, valueLSB);
+  data.set(OTDataLinkLayer::MSG_TYPE::PRIMARY_TO_SECONDARY_WRITE_DATA, uint8_t(msgID), valueMSB, valueLSB);
 
   return _execute(data);
 }
@@ -156,7 +156,7 @@ bool                    OpenTherm::write(WRITE_DATA_ID                        ms
 bool                    OpenTherm::write(WRITE_DATA_ID                        msgID,
                                           float                               value) {
   OTDataLinkLayer data;
-  data.set(OTDataLinkLayer::MSG_TYPE::MASTER_TO_SLAVE_WRITE_DATA, uint8_t(msgID), uint16_t(value * 256.0f));
+  data.set(OTDataLinkLayer::MSG_TYPE::PRIMARY_TO_SECONDARY_WRITE_DATA, uint8_t(msgID), uint16_t(value * 256.0f));
 
   return _execute(data);
 }
@@ -166,7 +166,7 @@ bool                    OpenTherm::readWrite(READ_WRITE_DATA_ID               ms
                                               uint8_t                         valueMSB,
                                               uint8_t &                       valueLSB) {
   OTDataLinkLayer data;
-  data.set(OTDataLinkLayer::MSG_TYPE::MASTER_TO_SLAVE_READ_DATA, uint8_t(msgID), valueMSB, valueLSB);
+  data.set(OTDataLinkLayer::MSG_TYPE::PRIMARY_TO_SECONDARY_READ_DATA, uint8_t(msgID), valueMSB, valueLSB);
 
   if(_execute(data)) {
     valueLSB = data.valueLSB();
@@ -298,17 +298,17 @@ uint32_t                OTDataLinkLayer::frame() {
 
 
 bool                    OTDataLinkLayer::isValid() {
-  return parity() && (type() == MSG_TYPE::SLAVE_TO_MASTER_READ_ACK || type() == MSG_TYPE::SLAVE_TO_MASTER_WRITE_ACK || type() == MSG_TYPE::MASTER_TO_SLAVE_READ_DATA || type() == MSG_TYPE::MASTER_TO_SLAVE_WRITE_DATA);
+  return parity() && (type() == MSG_TYPE::SECONDARY_TO_PRIMARY_READ_ACK || type() == MSG_TYPE::SECONDARY_TO_PRIMARY_WRITE_ACK || type() == MSG_TYPE::PRIMARY_TO_SECONDARY_READ_DATA || type() == MSG_TYPE::PRIMARY_TO_SECONDARY_WRITE_DATA);
 }
 
 
 bool                    OTDataLinkLayer::dataInvalid() {
-  return type() == MSG_TYPE::SLAVE_TO_MASTER_DATA_INVALID || type() == MSG_TYPE::MASTER_TO_SLAVE_INVALID_DATA;
+  return type() == MSG_TYPE::SECONDARY_TO_PRIMARY_DATA_INVALID || type() == MSG_TYPE::PRIMARY_TO_SECONDARY_INVALID_DATA;
 }
 
 
 bool                    OTDataLinkLayer::unknownDataID() {
-  return type() == MSG_TYPE::SLAVE_TO_MASTER_UNKNOWN_DATA_ID;      // Slave does not select the DATA-ID, this function should not be called from a slave
+  return type() == MSG_TYPE::SECONDARY_TO_PRIMARY_UNKNOWN_DATA_ID;      // Secondary device does not select the DATA-ID, this function should not be called from a secondary
 }
 
 
@@ -340,7 +340,7 @@ void                    OTPGenericISR() {
 
                         OTPhysicalLayer::OTPhysicalLayer(uint8_t              rxPin,
                                                           uint8_t             txPin,
-                                                          bool                master): _rxPin(rxPin), _txPin(txPin), _master(master) {
+                                                          bool                primary): _rxPin(rxPin), _txPin(txPin), _primary(primary) {
   
   pinMode(_rxPin, INPUT);
   pinMode(_txPin, OUTPUT);
@@ -398,7 +398,7 @@ bool                    OTPhysicalLayer::receive(uint32_t &                   fr
   if(_state == STATE::INVALID) return false;                  // ::send() will set _state to STATE::WAITING
 
   if(_state != STATE::READY) {                                // ::handleInterrupt() will set _state to STATE::READY upon receiving a complete frame (including start and stop bits)
-    if(_master && millis() - _lastSentTimestampMs > 800) {    // ::send() will set _lastSentTimestampMs to after sending the final bit. A slave never times out, it keeps on listning to the master
+    if(_primary && millis() - _lastSentTimestampMs > 800) {   // ::send() will set _lastSentTimestampMs to after sending the final bit. A secondary never times out, it keeps on listning to the primary
       _state = STATE::INVALID;    // timeout
     }
 
@@ -431,12 +431,12 @@ void                    OTPhysicalLayer::sendBit(uint8_t                      va
   if(_state == STATE::INVALID) return;                        // Start reception after _send() has set _state to STATE::WAITING
                                                               // ::handleInterrupt() passes from STATE_WATING to STATE::START_BIT, to STATE::RECEIVING for the data bits, to _state STATE::READY after the stop bit
   if(_state == STATE::READY) {
-    if(!_master && digitalRead(_rxPin)  == HIGH) {
+    if(!_primary && digitalRead(_rxPin)  == HIGH) {
       _state = STATE::WAITING;
       _frame = 0;
     } else {
 
-      return;                                                 // Nothing to do for a master in _state is STATE::READY
+      return;                                                 // Nothing to do for a primary device in _state is STATE::READY
     }
   }
 
