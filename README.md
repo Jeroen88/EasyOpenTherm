@@ -5,12 +5,12 @@ Create your own thermostat with this library and save money on your energy bills
 The library complies with the OpenTherm specification. Control any (condensing) boiler or air conditioner (HVAC) that also meets the OpenTherm specification.
 
 The library can be easily installed in the Arduino IDE. It has been tested on an ESP32 microcontroller and will also work on an ESP8266.
-To connect the boiler, you will need an [OpenTherm controller](https://www.tindie.com/products/jeroen88).
+To connect the boiler, you will need an [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/).
 
 ## Installation
 - Download the library from [GitHub](https://github.com/Jeroen88/EasyOpenTherm/archive/refs/heads/main.zip)
 - Install the library named EasyOpenTherm-main.zip using the Arduino IDE library manager
-- Connect the pins marked 'OT' of the [OpenTherm controller](https://www.tindie.com/products/jeroen88) with two wires to the boiler. You can use the existing wires from your current thermostat. The order of the wires is not important, they are interchangeable
+- Connect the pins marked 'OT' of the [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/) with two wires to the boiler. You can use the existing wires from your current thermostat. The order of the wires is not important, they are interchangeable
 - Connect the pins marked '3v3' and 'GND' to the ESP32 pins '3v3;  and 'GND'
 - Connect the pin marked 'RxD' to a pin supporting OUTPUT of the ESP32 and the pin marked 'TxD' to a pin supporting interrupts. The pins you use should be defined in the program (see below)
 
@@ -23,7 +23,7 @@ Select two free GPIO pins, one to send data to the boiler and one to receive dat
 #define OT_RX_PIN (34)
 #define OT_TX_PIN (17)
 ```
-In this case GPIO34 is used for receiving and GPIO17 is used for sending data. Note that the *Rx* pin is connected to the *TxD* pin of the [OpenTherm controller](https://www.tindie.com/products/jeroen88) and vice versa!
+In this case GPIO34 is used for receiving and GPIO17 is used for sending data. Note that the *Rx* pin is connected to the *TxD* pin of the [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/) and vice versa!
 Create an OpenTherm class instance 
 ```cpp
 OpenTherm thermostat(OT_RX_PIN, OT_TX_PIN);
