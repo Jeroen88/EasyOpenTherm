@@ -23,7 +23,7 @@ Select two free GPIO pins, one to send data to the boiler and one to receive dat
 #define OT_RX_PIN (34)
 #define OT_TX_PIN (17)
 ```
-In this case GPIO34 is used for receiving and GPIO17 is used for sending data. Note that the *Rx* pin is connected to the *TxD* pin of the [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/) and vice versa!
+In this case GPIO34 is used for receiving and GPIO17 is used for sending data. Note that the **Rx** pin is connected to the **TxD** pin of the [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/) and vice versa!
 Create an OpenTherm class instance 
 ```cpp
 OpenTherm thermostat(OT_RX_PIN, OT_TX_PIN);
