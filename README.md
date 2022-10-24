@@ -24,6 +24,7 @@ Select two free GPIO pins, one to send data to the boiler and one to receive dat
 #define OT_TX_PIN (17)
 ```
 In this case GPIO34 is used for receiving and GPIO17 is used for sending data. Note that the **Rx** pin is connected to the **TxD** pin of the [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/) and vice versa!
+
 Create an OpenTherm class instance 
 ```cpp
 OpenTherm thermostat(OT_RX_PIN, OT_TX_PIN);
@@ -43,10 +44,8 @@ thermostat.write(OpenTherm::WRITE_DATA_ID::CONTROL_SETPOINT_CH, CH_SETPOINT)
 All these functions take an OpenTherm DATA-ID as _first_ parameter. The DATA-ID refers to the action requested from the boiler. All known DATA-ID's are defined in _EasyOpenTherm.h_. The DATA-IDs for reading data from the boiler are defined in ```enum class READ_DATA_ID```, DATA-IDs for writing data to the boiler are defined in ```enum class WRITE_DATA_ID``` and DATA-IDs for writing and reading data to and from the boiler are defined in ```enum class    READ_WRITE_DATA_ID```. The _second_ parameter and sometimes _third_ parameter defines the value _written to_ the boiler or _read from_ the boiler. The data types are:
 - uint16_t marked as u16 in the comments
 - sint16_t marked as s16
-- float marked as f8.8 (because actually it is a sint_16 / 256)
-- Two times a uint8_t marked as flag8, u8 or s8. If it is a flag the meaning of bits is defined in an enum class with a name inding in _FLAG, e.g. ```enum class STATUS_FLAGS```
-
-Remember: the thermostat is always the _primary_ device and the boiler always the _secondary_.
+- float marked as f8.8 (because actually it is a sint16_t / 256)
+- Two times a uint8_t marked as flag8, u8 or s8. If it is a flag the meaning of bits is defined in an enum class with a name ending in _FLAG, e.g. ```enum class STATUS_FLAGS```
 
 ## Glossary
 - _primary_: the device issuing the requests, in this context also called _thermostat_
@@ -61,9 +60,8 @@ Remember: the thermostat is always the _primary_ device and the boiler always th
 - _flow_: water leaving the boiler
 - _return_: water returning to the boiler
 
-
 ## License
-© 2022 Jeroen Döll, licensed under the [GNU General Public License](https://www.gnu.org/licenses/gpl-3.0.html). Enjoy using the library, feedback is wellcome!
+© 2022 Jeroen Döll, licensed under the [GNU General Public License](https://www.gnu.org/licenses/gpl-3.0.html). Enjoy using the library, feedback is welcome!
 
 
 
