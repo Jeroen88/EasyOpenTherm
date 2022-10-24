@@ -57,7 +57,7 @@ Remember: the thermostat is always the _primary_ device and the boiler always th
 - _HVAC_: Heating, Ventilation and Air Conditioning
 - _setpoint_: the desired value of a parameter, e.g. the desired temperature of the temperature of the water of the boiler is called CH (Central Heating) setpoint
 - _on/off_: a non digital control mode switching the boiler on and off (by shortening the thermostat wires and opening them)
-- _ modulation_: a technique of lowering the flame when less power is needed
+- _modulation_: a technique of lowering the flame when less power is needed
 - _flow_: water leaving the boiler
 - _return_: water returning to the boiler
 
