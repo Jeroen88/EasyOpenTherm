@@ -28,8 +28,8 @@
 #include <Arduino.h>
 
 
-class                     OTDataLinkLayer;                    // Foreward declaration
-class                     OTPhysicalLayer;                    // Foreward declaration
+class                     OTDataLinkLayer;                    // Forward declaration
+class                     OTPhysicalLayer;                    // Forward declaration
 
 
 class                     OpenTherm {
@@ -45,6 +45,46 @@ public:
 
   bool                    status(uint8_t                      primaryFlags,
                                   uint8_t &                   secondaryFlags);
+
+
+  enum class    READ_WRITE_DATA_ID;                           // Forward declaration of DATA-IDs that can be used to write the MSB (Most ignificant Byte) to the boiler and read the LSB from it.
+  enum class    READ_DATA_ID;                                 // Forward declaration of DATA-IDs that can be used to read values from the boiler
+  enum class    WRITE_DATA_ID;                                // Forward declaration of DATA-IDs that can be used to write values to the boiler
+  enum class    ERROR_CODES;                                  // Forward declaration of ERROR_CODES, like timeouts, returned through the physical layer
+
+
+  bool                    read(READ_DATA_ID                   msgID,
+                                uint16_t &                    value);
+
+  bool                    read(READ_DATA_ID                   msgID,
+                                int16_t &                     value);
+
+  bool                    read(READ_DATA_ID                   msgID,
+                                uint8_t &                     valueMSB,
+                                uint8_t &                     valueLSB);
+
+  bool                    read(READ_DATA_ID                   msgID,
+                                int8_t &                      valueMSB,
+                                int8_t &                      valueLSB);
+
+  bool                    read(READ_DATA_ID                   msgID,
+                                float &                       value);
+
+  bool                    write(WRITE_DATA_ID                 msgID,  
+                                uint16_t                      value);
+
+  bool                    write(WRITE_DATA_ID                 msgID,  
+                                uint8_t                       valueMSB,
+                                uint8_t                       valueLSB);
+
+  bool                    write(WRITE_DATA_ID                 msgID,
+                                float                         value);
+
+  bool                    readWrite(READ_WRITE_DATA_ID        msgID,
+                                    uint8_t                   valueMSB,
+                                    uint8_t &                 valueLSB);
+
+  ERROR_CODES             error();
 
 
   enum class    READ_WRITE_DATA_ID {
@@ -222,6 +262,8 @@ public:
   };
 
 
+  // Flags used by ::status(primaryFlags, secondaryFlags); The flags starting with PRIMARY_ are sent from the thermostat to the boiler and the flgas starting with SECONDARY_ are received 
+  // from the boiler
   enum class    STATUS_FLAGS {
     // Primary device is MSB
     PRIMARY_CH_ENABLE               = (0b00000001),           // CH is Central Heating
@@ -241,6 +283,18 @@ public:
   };
 
 
+  // Configuration flags returned by calling ::read(OpenTherm::READ_DATA_ID::SECONDARY_CONFIGURATION, configurationFlags, memberID);
+  enum class    CONFIGURATION_FLAGS {
+    SECONDARY_DHW_PRESENT           = (0b00000001),
+    SECONDARY_CONTROL_TYPE          = (0b00000010),
+    SECONDARY_COOLING               = (0b00000100),
+    SECONDARY_DHW                   = (0b00001000),  
+    SECONDARY_LOW_OFF_PUMP_CTRL     = (0b00010000),
+    SECONDARY_CH2_PRESENT           = (0b00100000),
+  };
+
+
+  // A few known member IDs returned by calling ::read(OpenTherm::READ_DATA_ID::SECONDARY_CONFIGURATION, configurationFlags, memberID);
   enum          MEMBER_IDS: uint8_t {                         // May be extended with other manufacturer OpenTherm member IDs. Maybe incorrect
     AWB                             = 2,
     BRINK                           = 2,
@@ -266,6 +320,7 @@ public:
   };
 
 
+  // Fault flags returned by calling ::read(OpenTherm::READ_DATA_ID::FAULT_FLAGS, faultFlags, OEMFaultCode);
   enum class    FAULT_FLAGS {
     SERVICE_REQUEST                 = (0b00000001),
     LOCKOUT_RESET                   = (0b00000010),
@@ -276,16 +331,7 @@ public:
   };
 
 
-  enum class    CONFIGURATION_FLAGS {
-    SECONDARY_DHW_PRESENT           = (0b00000001),
-    SECONDARY_CONTROL_TYPE          = (0b00000010),
-    SECONDARY_COOLING               = (0b00000100),
-    SECONDARY_DHW                   = (0b00001000),  
-    SECONDARY_LOW_OFF_PUMP_CTRL     = (0b00010000),
-    SECONDARY_CH2_PRESENT           = (0b00100000),
-  };
-
-
+  // Remote parameter flags returned by calling ::read(OpenTherm::READ_DATA_ID::REMOTE_PARAMETER, remoteParameterTEFlags, remoteParameterRWFlags);
   enum class    REMOTE_PARAMETER_FLAGS {
     TRANSFER_ENABLE_DHW_SETPOINT    = (0b00000001),
     TRANSFER_ENABLE_MAX_CH_SETPOINT = (0b00000010),
@@ -295,18 +341,23 @@ public:
   };
 
 
+
+  // Remote parameter flags returned by calling ::read(OpenTherm::READ_DATA_ID::REMOTE_OVERRIDE_FUNCTION, reserved, remoteOverrideFlags);
   enum class    REMOTE_OVERRIDE_FLAGS {
     MANUAL_CHANGE_PRIORITY          = (0b00000001),
     REMOTE_CHANGE_PRIORITY          = (0b00000010),
   };
 
 
+  // Remote parameter flags returned by calling ::readWrite(OpenTherm::READ_WRITE_DATA_ID::COMMAND_CODE, remoteCommand, cmdResponseCode);
   enum class    REMOTE_COMMANDS {
     BLOR                            = (1),                    // Boiler Lock-out Reset command
     CHWF                            = (2),                    // CH water filling
   };
 
 
+  // Flags used by ::readWrite(OpenTherm::READ_WRITE_DATA_ID::HVAC_STATUS, primaryFlags, secondaryFlags); The flags starting with PRIMARY_ are sent from the thermostat to the HVAC
+  // and the flags starting with SECONDARY_ are received from the HVAC. This is comparable to the ::status() call for a boiler.
   enum class    HVAC_STATUS_FLAGS {
     // Primary device is MSB
     PRIMARY_VENTILATION_ENABLE      = (0b00000001),
@@ -347,48 +398,17 @@ public:
   };
 
 
+  // ::error(); returns the result of the latest call to ::read();, ::write(); or ::readWrite();
   enum class    ERROR_CODES {
-    OK,
-    UNKNOWN_DATA_ID,
-    INVALID_DATA,
-    SEND_TIMEOUT,
-    RECEIVE_TIMEOUT,
-    PARITY_ERROR,
-    UNKNOWN_ERROR,
+    OK,                                                       // Everything is OK
+    UNKNOWN_DATA_ID,                                          // The DATA-ID sent by the primary to the secondary is not supported by the secondary
+    INVALID_DATA,                                             // The DATA-ID sent by the primary to the secondary is supported but the sent value is out of bounds
+    SEND_TIMEOUT,                                             // The primary could not send within timeout period (should not occur if timeouts are reasonable)
+    RECEIVE_TIMEOUT,                                          // The secondary did not respond within timeout period
+    PARITY_ERROR,                                             // The secondary's response had a parity error
+    UNKNOWN_ERROR,                                            // Unknown error (should not occur)
   };
 
-  bool                    read(READ_DATA_ID                   msgID,
-                                uint16_t &                    value);
-
-  bool                    read(READ_DATA_ID                   msgID,
-                                int16_t &                     value);
-
-  bool                    read(READ_DATA_ID                   msgID,
-                                uint8_t &                     valueMSB,
-                                uint8_t &                     valueLSB);
-
-  bool                    read(READ_DATA_ID                   msgID,
-                                int8_t &                      valueMSB,
-                                int8_t &                      valueLSB);
-
-  bool                    read(READ_DATA_ID                   msgID,
-                                float &                       value);
-
-  bool                    write(WRITE_DATA_ID                 msgID,  
-                                uint16_t                      value);
-
-  bool                    write(WRITE_DATA_ID                 msgID,  
-                                uint8_t                       valueMSB,
-                                uint8_t                       valueLSB);
-
-  bool                    write(WRITE_DATA_ID                 msgID,
-                                float                         value);
-
-  bool                    readWrite(READ_WRITE_DATA_ID        msgID,
-                                    uint8_t                   valueMSB,
-                                    uint8_t &                 valueLSB);
-
-  ERROR_CODES             error();
 
 private:
   bool                    _execute(OTDataLinkLayer &          data);
@@ -407,17 +427,8 @@ private:
 
 class                     OTDataLinkLayer {
 public:
-  enum class              MSG_TYPE {
-    PRIMARY_TO_SECONDARY_READ_DATA       = (0b0000000UL << 24),        // value >> 28 := 0
-    PRIMARY_TO_SECONDARY_WRITE_DATA      = (0b0010000UL << 24),        // value >> 28 := 1
-    PRIMARY_TO_SECONDARY_INVALID_DATA    = (0b0100000UL << 24),        // value >> 28 := 2
-    PRIMARY_TO_SECONDARY_RESERVED        = (0b0110000UL << 24),        // value >> 28 := 3
+  enum class              MSG_TYPE;                           // Forward declaration
 
-    SECONDARY_TO_PRIMARY_READ_ACK        = (0b1000000UL << 24),        // value >> 28 := 4
-    SECONDARY_TO_PRIMARY_WRITE_ACK       = (0b1010000UL << 24),        // value >> 28 := 5
-    SECONDARY_TO_PRIMARY_DATA_INVALID    = (0b1100000UL << 24),        // value >> 28 := 6
-    SECONDARY_TO_PRIMARY_UNKNOWN_DATA_ID = (0b1110000UL << 24)         // value >> 28 := 7
-  };
 
                           OTDataLinkLayer();
 
@@ -453,6 +464,19 @@ public:
   bool                    dataInvalid();
 
   bool                    unknownDataID();
+
+
+  enum class              MSG_TYPE {
+    PRIMARY_TO_SECONDARY_READ_DATA       = (0b0000000UL << 24),        // value >> 28 := 0
+    PRIMARY_TO_SECONDARY_WRITE_DATA      = (0b0010000UL << 24),        // value >> 28 := 1
+    PRIMARY_TO_SECONDARY_INVALID_DATA    = (0b0100000UL << 24),        // value >> 28 := 2
+    PRIMARY_TO_SECONDARY_RESERVED        = (0b0110000UL << 24),        // value >> 28 := 3
+
+    SECONDARY_TO_PRIMARY_READ_ACK        = (0b1000000UL << 24),        // value >> 28 := 4
+    SECONDARY_TO_PRIMARY_WRITE_ACK       = (0b1010000UL << 24),        // value >> 28 := 5
+    SECONDARY_TO_PRIMARY_DATA_INVALID    = (0b1100000UL << 24),        // value >> 28 := 6
+    SECONDARY_TO_PRIMARY_UNKNOWN_DATA_ID = (0b1110000UL << 24)         // value >> 28 := 7
+  };
 
 private:
   uint32_t                _frame;
