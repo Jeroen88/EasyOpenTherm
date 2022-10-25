@@ -8,8 +8,7 @@ The library can be easily installed in the Arduino IDE. It has been tested on an
 To connect the boiler, you will need an [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/).
 
 ## Installation
-- Download the library from [GitHub](https://github.com/Jeroen88/EasyOpenTherm/archive/refs/heads/main.zip)
-- Install the library named EasyOpenTherm-main.zip using the Arduino IDE library manager
+- Install the EasyOpenTherm library directly using the Arduino IDE library manager
 - Connect the pins marked 'OT' of the [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/) with two wires to the boiler. You can use the existing wires from your current thermostat. The order of the wires is not important, they are interchangeable
 - Connect the pins marked '3v3' and 'GND' to the ESP32 pins '3v3;  and 'GND'
 - Connect the pin marked 'RxD' to a pin supporting OUTPUT of the ESP32 and the pin marked 'TxD' to a pin supporting interrupts. The pins you use should be defined in the program (see below)
