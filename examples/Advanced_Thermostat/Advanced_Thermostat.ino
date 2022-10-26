@@ -2,7 +2,11 @@
  *    https://github.com/Jeroen88/EasyOpenTherm
  *    https://www.tindie.com/products/Metriot/OpenTherm-adapter/
  *
- *    Advanced_Thermostat is a program to demonstrate a basic but real working thermostat.
+ *    Advanced_Thermostat is a program to demonstrate a real working thermostat.
+ *    A temperature sensor is used to measure room temperature. A fixed room
+ *    setpoint is used. Ofcourse for a real life thermostat this should be 
+ *    adjustable. Please adapt the program to your needs.
+ *
  *    Copyright (C) 2022  Jeroen Döll <info@metriot.nl>
  *
  *    This program is free software: you can redistribute it and/or modify
