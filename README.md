@@ -44,7 +44,7 @@ All these functions take an OpenTherm DATA-ID as _first_ parameter. The DATA-ID 
 - ```uint16_t``` marked as u16 in the comments
 - ```int16_t``` marked as s16
 - ```float``` marked as f8.8 (because actually it is an ```int16_t / 256.0```)
-- Two times a ```uint8_t``` marked as flag8, u8 or s8. If it is a flag the meaning of bits is defined in an enum class with a name ending in _FLAG, e.g. ```enum class STATUS_FLAGS```
+- Two times an ```uint8_t``` marked as flag8 or u8, or an ```int8_t``` as s8. If it is a flag the meaning of bits is defined in an enum class with a name ending in _FLAG, e.g. ```enum class STATUS_FLAGS```
 
 ## Error handling
 The function ```error()``` is used to get information about the last call to one of the functions ```read()```, ```write()``` or ```readWrite()```. All these functions  return ```false``` if an
