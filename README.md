@@ -49,7 +49,7 @@ All these functions take an OpenTherm DATA-ID as _first_ parameter. The DATA-ID 
 ## Error handling
 The function ```error()``` is used to get information about the last call to one of the functions ```read()```, ```write()``` or ```readWrite()```. All these functions  return ```false``` if an
 error occurred in the _communication_ between thermostat (primary) and boiler or HVAC (secondary). These functions return ```true``` if everything is fine, but also upon an error on 
-_application level_. You will get this error if e.g. you _read out_ your boiler or HVAC with a DATA-ID that is not supported. Also, if you _write data to_ your boiler or HVAC, the value can be out of range, e.g. a setpoint is to low or to high. In this case ```error()``` will return ```INVALID_DATA```. Note that the exact behaviour is not specified in the OpenTherm specification, so if you get this error you'll know that the value you sent was out of bounds, but if you do not get this error the value still might not got accepted by the boiler or HVAC. 
+_application level_. You will get this error if e.g. you _read out_ your boiler or HVAC with a DATA-ID that is not supported. Also, if you _write data to_ your boiler or HVAC, the value can be out of range, e.g. a setpoint is to low or to high. In this case ```error()``` will return ```INVALID_DATA```. Note that the exact behaviour is not specified in the OpenTherm specification, so if you get this error you'll know that the value you sent was out of bounds, but if you do not get this error the value still might not be accepted by the boiler or HVAC. 
 
 All error codes:
 - ```OK```: everything is fine!
