@@ -31,8 +31,11 @@ OpenTherm thermostat(OT_RX_PIN, OT_TX_PIN);
 Make sure that only one instance of this object is alive at a time. So make it global or ```static``` like in the examples.
 Start communicating with the boiler (or HVAC) e.g. request activation of the services of the boiler and request it's status flags
 ```cpp
-uint8_t primaryFlags = uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_DHW_ENABLE) | uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_CH_ENABLE) | uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_COOLING_ENABLE) | uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_OTC_ENABLE);
-uint8_t statusFlags;
+uint8_t primaryFlags = uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_DHW_ENABLE);  // Enable Domestic Hot Water 
+primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_CH_ENABLE);          // Enable Central Heating
+primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_COOLING_ENABLE);     // Enable cooling (of your boiler, if available)
+primaryFlags | =uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_OTC_ENABLE);         // Enable Outside Temperature Compensation (ifa available in your boiler)
+uint8_t statusFlags;                                                          // Flags returned by the boiler will be stored into this variable
 thermostat.status(primaryFlags, statusFlags);
 ```
 This command will return _true_ on success and _false_ otherwise
@@ -56,7 +59,7 @@ All error codes:
 - ```UNKNOWN_DATA_ID```: your boiler or HVAC does not support the DATA-ID you requested. 
 - ```INVALID_DATA```: the DATA-ID you sent with ```write()``` or ```readWrite()``` is correct but _the value_ you sent is out of bounds
 - ```SEND_TIMEOUT```: a timeout occurred while sending the request to the boiler or HVAC. Check if the timeout value in the OpenTherm constructor is OK (should be less than 1,000 ms, defaults to 900 ms)
-- ```RECEIVE_TIMEOUT```: a timeout occurred while sending the request to the boiler or HVAC. Most of the time this indicates problems with wiring. If wiring is OK, did you check if your boiler actually does support the OpenTherm protocol?
+- ```RECEIVE_TIMEOUT```: a timeout occurred while reading the response from the boiler or HVAC. Most of the time this indicates problems with wiring. If wiring is OK, did you check if your boiler actually does support the OpenTherm protocol?
 - ```PARITY_ERROR```: the parity check failed.
 
 ## Glossary
