@@ -34,7 +34,7 @@ Start communicating with the boiler (or HVAC) e.g. request activation of the ser
 uint8_t primaryFlags = uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_DHW_ENABLE);  // Enable Domestic Hot Water 
 primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_CH_ENABLE);          // Enable Central Heating
 primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_COOLING_ENABLE);     // Enable cooling (of your boiler, if available)
-primaryFlags | =uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_OTC_ENABLE);         // Enable Outside Temperature Compensation (ifa available in your boiler)
+primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_OTC_ENABLE);         // Enable Outside Temperature Compensation (ifa available in your boiler)
 uint8_t statusFlags;                                                          // Flags returned by the boiler will be stored into this variable
 thermostat.status(primaryFlags, statusFlags);
 ```
