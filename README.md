@@ -46,6 +46,19 @@ All these functions take an OpenTherm DATA-ID as _first_ parameter. The DATA-ID 
 - float marked as f8.8 (because actually it is a sint16_t / 256)
 - Two times a uint8_t marked as flag8, u8 or s8. If it is a flag the meaning of bits is defined in an enum class with a name ending in _FLAG, e.g. ```enum class STATUS_FLAGS```
 
+## Error handling
+The function ```error()``` is used to get information about the last call to one of the functions ```read()```, ```write()``` or ```readWrite()```. All these functions  return ```false``` if an
+error occurred in the _communication_ between thermostat (primary) and boiler or HVAC (secondary). These functions return ```true``` if everything is fine, but also upon an error on 
+_application level_. You will get this error if e.g. you _read out_ your boiler or HVAC with a DATA-ID that is not supported. Also, if you _write data to_ your boiler or HVAC, the value can be out of range, e.g. a setpoint is to low or to high. In this case ```error()``` will return ```INVALID_DATA```. Note that the exact behaviour is not specified in the OpenTherm specification, so if you get this error you'll know that the value you sent was out of bounds, but if you do not get this error the value still might not got accepted by the boiler or HVAC. 
+
+All error codes:
+- ```OK```: everything is fine!
+- ```UNKNOWN_DATA_ID```: your boiler or HVAC does not support the DATA-ID you requested. 
+- ```INVALID_DATA```: the DATA-ID you sent with ```write()``` or ```readWrite()``` is correct but _the value_ you sent is out of bounds
+- ```SEND_TIMEOUT```: a timeout occurred while sending the request to the boiler or HVAC. Check if the timeout value in the OpenTherm constructor is OK (should be less than 1,000 ms, defaults to 900 ms)
+- ```RECEIVE_TIMEOUT```: a timeout occurred while sending the request to the boiler or HVAC. Most of the time this indicates problems with wiring. If wiring is OK, did you check if your boiler actually does support the OpenTherm protocol?
+- ```PARITY_ERROR```: the parity check failed.
+
 ## Glossary
 - _primary_: the device issuing the requests, in this context also called _thermostat_
 - _secondary_: the device handling the requests and sending responses, also called _boiler_ or _HVAC_
