@@ -36,42 +36,49 @@
  *    Define the room temperature setpoint (desired room temperature) using #define ROOM_TEMPERATURE_SETPOINT. In a real application this should be settable.
  *    Eventually define the maximum central heating boiler temperature setpoint using #define CH_MAX_SETPOINT. 
  *
- *    Compile and upload the program as normal. If the temperature measured by your sensor is lower than the ROOM_TEMPERATURE_SETPOINT this thermostat program will actually begin to heat up your room
+ *    Compile and upload the program as normal. If the temperature measured by your sensor is lower than the ROOM_TEMPERATURE_SETPOINT this thermostat program
+ *    will actually begin to heat up your room
  */
 
 /* IMPORTANT NOTICES
  * You have to do a lot of configuration to get this running! It is not difficult, but you have to be diligent.
- * This example uses a certificate to autenticate the MQTT server and to ecnrypt the connection using TLS (Transport Layer Security) with a WiFiClientSecure. If you do not want to use this feature,
- * because e.g. your MQTT broker does not support it, you have to adapt this program:
+ * This example uses a certificate to autenticate the MQTT server and to ecnrypt the connection using TLS (Transport Layer Security) with a WiFiClientSecure.
+ * If you do not want to use this feature, because e.g. your MQTT broker does not support it, you have to adapt this program:
  * - Use a WiFiClient instead of a WiFiClientSecure
  * - Do not define const char CACertificate[] (remove it from the program or leave it 'as is')
  * - Do not call wiFiClient.setCACert(CACertificate);
  *
- * You SHOULD provide your #define TIME_ZONE, otherwise the time displayed will be different than your timezone. The value provided for in the example is Central Europe Time with Daylight Saving
+ * You SHOULD provide your #define TIME_ZONE, otherwise the time displayed will be different than your timezone. The value provided for in the example is
+ * Central Europe Time with Daylight Saving
  *
  * You MUST provide the GPIO pins the OpenTherm controller is connected to (#define OT_RX_PIN and #define OT_TX_PIN)
  *
- * You MUST use a BME280 temperature sensor board and provide the I2C address of your sensor and the GPIO pins it is connected to (#define BME_ADDRESS, #define I2C_SDA_PIN and I2C_SCL_PIN)
+ * You MUST use a BME280 temperature sensor board and provide the I2C address of your sensor and the GPIO pins it is connected to (#define BME_ADDRESS,
+ * #define I2C_SDA_PIN and I2C_SCL_PIN)
  * You MAY use a completely different sensor, e.g a BME680 or even a Dallas temperature sensor) but then you MUST  adapt the program accordingly
  * 
  * You MUST provide your WiFi credentials (const char * ssid and const char * password)
  *
- * You MUST provide your MQTT server, MQTT user name and MQTT password (const char * mqtt_server, const char * mqtt_user = "CloudMQTT" and const char * mqtt_password)
+ * You MUST provide your MQTT server, MQTT user name and MQTT password (const char * mqtt_server, const char * mqtt_user = "CloudMQTT" and 
+ * const char * mqtt_password)
  *    This thermostat publishes the corrected measured room temperature to the MQTT broker in topic 'temperature'
- *    It subscribes to topic 'room_temperature_setpoint' to receive the room temperature setpoint. This temperature is not persistant. If you restart the program, you have to resend it.
+ *    It subscribes to topic 'room_temperature_setpoint' to receive the room temperature setpoint. This temperature is not persistant. If you restart the
+ *    program, you have to resend it.
  *
  * You MUST provide the CA certificate of your MQTT server (unless you use an insecure connection, see above, const char CACertificate[]) 
  *
- * You SHOULD calibrate your sensor by measuring a low temperature (e.g. 15 *C, not very critical) and a high temperature (e.g. 20 *C, again not critical) with both the temperature sensor and a
- *    calibrated thermomter. Store the results into #define LOWER_MEASURED_TEMPERATURE, LOWER_CALIBRATED_TEMPERATURE, HIGHER_MEASURED_TEMPERATURE and HIGHER_CALIBRATED_TEMPERATURE)
+ * You SHOULD calibrate your sensor by measuring a low temperature (e.g. 15 *C, not very critical) and a high temperature (e.g. 20 *C, again not critical) 
+ * with both the temperature sensor and a calibrated thermomter. Store the results into #define LOWER_MEASURED_TEMPERATURE, LOWER_CALIBRATED_TEMPERATURE, 
+ * HIGHER_MEASURED_TEMPERATURE and HIGHER_CALIBRATED_TEMPERATURE)
  *
- * You MAY want to change the minimum and maximum room temperature using #define ROOM_TEMPERATURE_MIN_SETPOINT and ROOM_TEMPERATURE_MAX_SETPOINT. On startup the thermostat is set to 
- *    ROOM_TEMPERATURE_MIN_SETPOINT. In this example these values are set to 12.0 and 25.0 *C
+ * You MAY want to change the minimum and maximum room temperature using #define ROOM_TEMPERATURE_MIN_SETPOINT and ROOM_TEMPERATURE_MAX_SETPOINT. On startup
+ * the thermostat is set to ROOM_TEMPERATURE_MIN_SETPOINT. In this example these values are set to 12.0 and 25.0 *C
  *
- * You MAY want to change the minimum and maximum Central Heating boiler water temperatures using #define CH_MIN_SETPOINT and #define CH_MAX_SETPOINT. In this example these values are set to
- *    10.0 and 60.0 *C. Remember: lowering the maximum will reduce the power of your central heating, thus increasing the time to heaten up your room and lowering the gas usage per hour. A good
- *    practise seems to lower this temperature for a well insulated house and/or using low temperature radiators e.g to 40.0 *C. If it takes too long to warm your house on a very cold winter day,
- *    increase to 60.0 *C or even higher in a badly insulated house. Check your boiler manual for the right maximum temperature.
+ * You MAY want to change the minimum and maximum Central Heating boiler water temperatures using #define CH_MIN_SETPOINT and #define CH_MAX_SETPOINT. In
+ *    this example these values are set to 10.0 and 60.0 *C. Remember: lowering the maximum will reduce the power of your central heating, thus increasing 
+ *    the time to heaten up your room and lowering the gas usage per hour. A good practise seems to lower this temperature for a well insulated house and/or
+ *    using low temperature radiators e.g to 40.0 *C. If it takes too long to warm your house on a very cold winter day, increase to 60.0 *C or even higher
+ *    in a badly insulated house. Check your boiler manual for the right maximum temperature.
  *
  * I hope you enjoy working with this library, pPlease share ideas in the Github Discussions sessions of this library.
  */ 
@@ -137,7 +144,7 @@
 
 
 // Update these with values suitable for your network.
-const char * ssid = "[YOUR WIFI SSID]";
+const char * ssid = "YOUR WIFI SSID";
 const char * password = "YOUR WIFI PASSWORD";
 
 

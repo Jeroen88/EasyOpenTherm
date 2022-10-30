@@ -18,7 +18,7 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
- *    You need an OpenTherm controller that you can buy at my Tindie store,
+ *    You need an OpenTherm controller that you can buy at my Tindie store, see <https://www.tindie.com/products/jeroen88/opentherm-controller/>
  *    Connect the two boiler wires to the OpenTherm controller pins marked OT. The order is not important.
  *    Connect the OpenTherm controller to your microcontroller's power (3v3) and ground (GND) pins.
  *    Connect the OpenTherm TXD pin to the microcontroller's pin defined by #define OT_RX_PIN.
