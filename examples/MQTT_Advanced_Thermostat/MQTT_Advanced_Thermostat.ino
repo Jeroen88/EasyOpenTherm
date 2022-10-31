@@ -33,7 +33,7 @@
  *    Install the Adafruit BME280 library
  *    Any other temperature sensor may be used, like a Dallas sensor, BME380, BMP380, BME680 if you adapt the program accordingly.
  *
- *    Define the room temperature setpoint (desired room temperature) using #define ROOM_TEMPERATURE_SETPOINT. In a real application this should be settable.
+ *    Set the room temperature setpoint (desired room temperature) using a MQTT client.
  *    Eventually define the maximum central heating boiler temperature setpoint using #define CH_MAX_SETPOINT. 
  *
  *    Compile and upload the program as normal. If the temperature measured by your sensor is lower than the ROOM_TEMPERATURE_SETPOINT this thermostat program
@@ -59,7 +59,7 @@
  * 
  * You MUST provide your WiFi credentials (const char * ssid and const char * password)
  *
- * You MUST provide your MQTT server, MQTT user name and MQTT password (const char * mqtt_server, const char * mqtt_user = "CloudMQTT" and 
+ * You MUST provide your MQTT server, MQTT user name and MQTT password (const char * mqtt_server, const char * mqtt_user and 
  * const char * mqtt_password)
  *    This thermostat publishes the corrected measured room temperature to the MQTT broker in topic 'temperature'
  *    It subscribes to topic 'room_temperature_setpoint' to receive the room temperature setpoint. This temperature is not persistant. If you restart the

@@ -431,7 +431,7 @@ void                    OTPhysicalLayer::sendBit(uint8_t                      va
   if(_state == STATE::INVALID) return;                        // Start reception after _send() has set _state to STATE::WAITING
                                                               // ::handleInterrupt() passes from STATE_WATING to STATE::START_BIT, to STATE::RECEIVING for the data bits, to _state STATE::READY after the stop bit
   if(_state == STATE::READY) {
-    if(!_primary && digitalRead(_rxPin)  == HIGH) {
+    if(!_primary && digitalRead(_rxPin) == HIGH) {
       _state = STATE::WAITING;
       _frame = 0;
     } else {
