@@ -94,6 +94,12 @@ public:
     // Class 3 : Remote Commands
     COMMAND_CODE                    = 4,        // u8, u8           Command code / Response to command
 
+    // Class 6 : Transparent Secondary Parameters
+    TSP_COMMAND                     = 11,       // u8, u8           Index number of following TSP, Value of the referenced TSP
+
+    // Class 7 : Fault History Data
+    FAULT_BUFFER_DATA               = 13,       // u8, u8           Index number of Fault Buffer entry, Value of the referenced Fault Buffer entry
+
     // Incomplete information for all DATA-IDs below. If these DATA-IDs are R, W or R/W is unknown. Also the data type is unknown and deducted from the name. These DATA-IDs are not ordered by class
     // Where applicable and available flags and masks are also defined below
 
@@ -151,11 +157,9 @@ public:
 
     // Class 6 : Transparent Secondary Parameters
     NUMBER_OF_TSPS                  = 10,       // u8, u8           Number of transparent-secondary-parameter supported by the secondary device, -Reserved-
-    TSP_COMMAND                     = 11,       // u8, u8           Index number of following TSP, Value of the referenced TSP
 
     // Class 7 : Fault History Data
     FAULT_BUFFER_SIZE               = 12,       // u8, u8           The size of the fault history buffer, -Reserved-
-    FAULT_BUFFER_DATA               = 13,       // u8, u8           Index number of Fault Buffer entry, Value of the referenced Fault Buffer entry
 
     // Class 8 : Control of Special Applications
     MAX_BOILER_CAPACITY_MIN_MOD_LEV = 15,       // u8, u8           MSB : max. boiler capacity (0..255kW), LSB : min. modulation level (0..100%) expressed as a percentage of the maximum capacity
