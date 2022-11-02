@@ -2,7 +2,7 @@
  *    https://github.com/Jeroen88/EasyOpenTherm
  *    https://www.tindie.com/products/Metriot/OpenTherm-adapter/
  *
- *    Test_Boiler_Communication is a program to test if your MCU can communicate with your OpenTherm compatible boiler
+ *    Test_Boiler_Communication is a program to test if your MCU can communicate with your OpenTherm compatible HVAC
  *    Copyright (C) 2022  Jeroen Döll <info@metriot.nl>
  *
  *    This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  *    You need an OpenTherm controller that you can buy at my Tindie store, see <https://www.tindie.com/products/jeroen88/opentherm-controller/>
- *    Connect the two boiler wires to the OpenTherm controller pins marked OT. The order is not important.
+ *    Connect the two HVAC wires to the OpenTherm controller pins marked OT. The order is not important.
  *    Connect the OpenTherm controller to your microcontroller's power (3v3) and ground (GND) pins.
  *    Connect the OpenTherm TXD pin to the microcontroller's pin defined by #define OT_RX_PIN.
  *    Connect the OpenTherm RXD pin to the microcontroller's pin defined by #define OT_TX_PIN.
@@ -46,33 +46,30 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  static OpenTherm thermostat(OT_RX_PIN, OT_TX_PIN);        // Create an OpenTherm thermostat (is primary device; boiler is secondary device ) with OT_RX_PIN to receive data from boiler and GPIO17 to send data to boiler
+  static OpenTherm thermostat(OT_RX_PIN, OT_TX_PIN);        // Create an OpenTherm thermostat (is primary device; HVAC is secondary device ) with OT_RX_PIN to receive data from HVAC and GPIO17 to send data to HVAC
   
-  // First try to connect to the boiler to read it's capabilities. The boiler returns an 8 bit secondaryFlags and each bit has a meaning. The bits are defined in enum class OpenTherm::CONFIGURATION_FLAGS
-  // The secondaryMemberIDCode identifies the manufacturer of the boiler
+  // First try to connect to the HVAC to read it's capabilities. The HVAC returns an 8 bit secondaryFlags and each bit has a meaning. The bits are defined in enum class OpenTherm::HVAC_CONFIGURATION_FLAGS
+  // The secondaryMemberIDCode identifies the manufacturer of the HVAC
   uint8_t secondaryFlags;
   uint8_t secondaryMemberIDCode;
-  if(thermostat.read(OpenTherm::READ_DATA_ID::SECONDARY_CONFIGURATION, secondaryFlags, secondaryMemberIDCode)) {      // Mandatory support
-    Serial.println("Your setup is working! A frame was send to the boiler and the boiler responded with a valid frame.");
-    Serial.printf("Secondary configuration flags is 0x%02x, boiler manufacturer's ID is %d (0x%02x).\n", secondaryFlags, secondaryMemberIDCode, secondaryMemberIDCode);
+  if(thermostat.read(OpenTherm::READ_DATA_ID::HVAC_SECONDARY_CONFIGURATION, secondaryFlags, secondaryMemberIDCode)) {      // Mandatory support
+    Serial.println("Your setup is working! A frame was send to the HVAC and the HVAC responded with a valid frame.");
+    Serial.printf("Secondary configuration flags is 0x%02x, HVAC manufacturer's ID is %d (0x%02x).\n", secondaryFlags, secondaryMemberIDCode, secondaryMemberIDCode);
     Serial.println("Here is the meanining of each bit in these flags:");
-    if(secondaryFlags & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_DHW_PRESENT)) Serial.println("Domestic Hot Water (DHW) present"); else Serial.println("Domestic Hot Water (DHW) not present");
-    if(secondaryFlags & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_CONTROL_TYPE)) Serial.println("Control type on/off"); else Serial.println("Control type modulating");
-    if(secondaryFlags & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_COOLING)) Serial.println("Cooling supported"); else Serial.println("Cooling not supported");
-    if(secondaryFlags & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_DHW)) Serial.println("Domestic Hot Water (DHW) storage tank"); else Serial.println("Domestic Hot Water (DHW) instantaneous or not-specified"); 
-    if(secondaryFlags & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_LOW_OFF_PUMP_CTRL)) Serial.println("Low off and pump control not allowed"); else Serial.println("Low off and pump control allowed");
-    if(secondaryFlags & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_CH2_PRESENT)) Serial.println("Second Central Heating system (CH2) present"); else Serial.println("Second Central Heating system (CH2) not present");
+    if(secondaryFlags & uint8_t(OpenTherm::HVAC_CONFIGURATION_FLAGS::SECONDARY_SYSTEM_TYPE)) Serial.println("HVAC system type set"); else Serial.println("HVAC system type cleared");
+    if(secondaryFlags & uint8_t(OpenTherm::HVAC_CONFIGURATION_FLAGS::SECONDARY_BYPASS)) Serial.println("HVAC bypass enabled"); else Serial.println("HVAC bypass disabled");
+    if(secondaryFlags & uint8_t(OpenTherm::HVAC_CONFIGURATION_FLAGS::SECONDARY_SPEED_CONTROL)) Serial.println("Speed control enabled"); else Serial.println("Speed control disabled");
   } else {
     secondaryFlags = 0;
 
     if(thermostat.error() == OpenTherm::ERROR_CODES::UNKNOWN_DATA_ID) {
-      // Valid data is received but the for boilers mandatory DATA-ID OpenTherm::READ_DATA_ID::SECONDARY_CONFIGURATION is not recognised. This is not a boiler but another device!
-      Serial.println("Your setup is working correctly but the remote device is not a boiler.");
-      Serial.println("Look in EasyOpenTherm.h for the HVAC_SECONDARY_CONFIGURATION or SOLAR_SECONDARY_CONFIGURATION\n DATA-ID and the corresponding primary and secondary flags.");
+      // Valid data is received but the for HVAC mandatory DATA-ID OpenTherm::READ_DATA_ID::HVAC_SECONDARY_CONFIGURATION is not recognised. This is not a HVAC but another device!
+      Serial.println("Your setup is working correctly but the remote device is not a HVAC.");
+      Serial.println("Look in EasyOpenTherm.h for the SECONDARY_CONFIGURATION or SOLAR_SECONDARY_CONFIGURATION\n DATA-ID and the corresponding primary and secondary flags.");
     } else {
       // No data or invalid data received
       Serial.println("Your setup is not working yet. Please check:");
-      Serial.println("Is the OpenTherm controller connected to the boiler using two wires? The order of the wires is not important.");
+      Serial.println("Is the OpenTherm controller connected to the HVAC using two wires? The order of the wires is not important.");
       Serial.println("Is the OpenTherm controller correctly powered? The GND pin should be connected to the GND pin of the\n microcontroller and the 3v3 pin to the 3v3 pin of the microcontroller.");
       Serial.printf("Is the OpenTherm controller TxD pin connected to the microcontroller's Rx pin as specified by\n #define OT_RX_PIN? Currently this pin is defined as %d.\n", OT_RX_PIN);
       Serial.printf("Is the OpenTherm controller RxD pin connected to the microcontroller's Tx pin as specified by\n #define OT_TX_PIN? Currently this pin is defined as %d.\n", OT_TX_PIN);

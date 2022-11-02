@@ -3,7 +3,7 @@
 Several examples are given, all fully functional, from very basic to advanced. The first thing you should always do is to run Test_Boiler_Communication.ino or Test_HVAC_Communication.ino, to make sure your [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/) is correctly wired, the right GPIO pins are configured and the secondary boiler or HVAC is responding to the requests of the primary thermostat.
 
 ## Test_Boiler_Communication.ino and Test_HVAC_Communication.ino
-Basic test of your setup.
+Basic test of your setup. The Test_HVAC_Communication.ino program is **not tested** because I do not own such a device.
 
 ## OpenTherm_Show_DATA-IDs.ino
 Sends all known DATA-IDs to the secondary and shows it's response. Can be used for both boilers and HVACs, although the boiler information is more extensive. Also the data types for the HVAC calls may not be correct.
