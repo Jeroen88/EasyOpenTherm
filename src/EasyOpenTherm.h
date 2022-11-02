@@ -147,7 +147,7 @@ public:
     OTC_CURVE_BOUNDS                = 50,       // s8, s8           Upper / lower bound
     DHW_SETPOINT                    = 56,       // f8.8             Domestic hot water temperature setpoint (Remote parameter 1) (°C)
     MAX_CH_WATER_SETPOINT           = 57,       // f8.8             Maximum allowable CH water setpoint (Remote parameter 2) (°C) 
-    OTC_CURVE_RATIO                 = 58,       // f8.8             OTC heat curve ratio (Remote parameter 3) (°C)
+    OTC_CURVE_RATIO                 = 58,       // f8.8             OTC heat curve ratio (Remote parameter 3)
 
     // Class 6 : Transparent Secondary Parameters
     NUMBER_OF_TSPS                  = 10,       // u8, u8           Number of transparent-secondary-parameter supported by the secondary device, -Reserved-
