@@ -379,6 +379,16 @@ public:
   };
 
 
+  // Configuration flags returned by calling ::read(OpenTherm::READ_DATA_ID::HVAC_SECONDARY_CONFIGURATION, configurationFlags, memberID);
+  enum class    HVAC_CONFIGURATION_FLAGS {
+    SECONDARY_SYSTEM_TYPE           = (0b00000001),
+    SECONDARY_BYPASS                = (0b00000010),
+    SECONDARY_SPEED_CONTROL         = (0b00000100),
+  };
+
+
+
+
   enum class    SOLAR_STATUS_FLAGS {
     // Priamry device is MSB
     PRIMARY_MODE                    = (0b00000111),
