@@ -125,11 +125,11 @@
 #define CH_MIN_SETPOINT (10.0f)
 
 // If the boiler supports Central Heating (CH), use the boiler for heating
-#define ENABLE_HEATING (true)
+#define BOILER_HEATING_MODE (true)
 // If the boiler supports cooling, use the boiler for cooling.
-#define ENABLE_COOLING (true)
+#define BOILER_COOLING_MODE (true)
 // If the boiler supports Domestic Hot Water (DHW), use the boiler for DHW
-#define ENABLE_DOMESTIC_HOT_WATER (true)
+#define BOILER_DOMESTIC_HOT_WATER_MODE (true)
 
 
 // Cheap sensor tend to be inaccurate. Accuracy can be increased by adding two temperatures as measured by the sensor and the 'real' temperature as measured with a calibrated thermometer
@@ -138,9 +138,9 @@
 // Make sure that the difference between both lower temperatures and both higher temperatures is about the same, otherwise your temperature sensor is really bad and you might get strange results from recalculateTemperatures();
 // https://www.letscontrolit.com/wiki/index.php?title=Basics:_Calibration_and_Accuracy
 #define LOWER_MEASURED_TEMPERATURE (19.0)
-#define LOWER_CALIBRATED_TEMPERATURE (17.1)
-#define HIGHER_MEASURED_TEMPERATURE (20.9)
-#define HIGHER_CALIBRATED_TEMPERATURE (18.5)
+#define LOWER_CALIBRATED_TEMPERATURE (19.0)
+#define HIGHER_MEASURED_TEMPERATURE (21.0)
+#define HIGHER_CALIBRATED_TEMPERATURE (21.0)
 
 
 // Update these with values suitable for your network.
@@ -373,20 +373,20 @@ void showCapabilities(uint8_t secondaryFlags, uint8_t secondaryMemberIDCode) {
 uint8_t requestServices(float CHSetpoint) {
   uint8_t primaryFlags = 0;
 
-  // ENABLE_DOMESTIC_HOT_WATER is a #define. If defined 'true' then domestic hot water is enabled
-  if(ENABLE_DOMESTIC_HOT_WATER) {
+  // BOILER_DOMESTIC_HOT_WATER_MODE is a #define. If defined 'true' then domestic hot water is enabled
+  if(BOILER_DOMESTIC_HOT_WATER_MODE) {
     Serial.println("+ Enable Domestic Hot Water (DHW)");
     primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_DHW_ENABLE);
   }
 
-  // ENABLE_HEATING is a #define. If defined 'true' then central heating is enabled.
-  if(ENABLE_HEATING && CHSetpoint > CH_MIN_SETPOINT) {
+  // BOILER_HEATING_MODE is a #define. If defined 'true' then central heating is enabled.
+  if(BOILER_HEATING_MODE && CHSetpoint > CH_MIN_SETPOINT) {
     Serial.println("+ Enable Central Heating (CH)");
     primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_CH_ENABLE);
   }
 
-  // ENABLE_COOLING is a #define. If defined 'true' then cooling is enabled
-  if(ENABLE_COOLING) {
+  // BOILER_COOLING_MODE is a #define. If defined 'true' then cooling is enabled
+  if(BOILER_COOLING_MODE) {
     Serial.println("+ Enable cooling");
     primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_COOLING_ENABLE);
   }
