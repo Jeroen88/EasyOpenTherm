@@ -125,11 +125,11 @@
 #define CH_MIN_SETPOINT (10.0f)
 
 // If the boiler supports Central Heating (CH), use the boiler for heating
-#define BOILER_HEATING_MODE (true)
+#define BOILER_ENABLE_HEATING (true)
 // If the boiler supports cooling, use the boiler for cooling.
-#define BOILER_COOLING_MODE (true)
+#define BOILER_ENABLE_COOLING (true)
 // If the boiler supports Domestic Hot Water (DHW), use the boiler for DHW
-#define BOILER_DOMESTIC_HOT_WATER_MODE (true)
+#define BOILER_ENABLE_DOMESTIC_HOT_WATER (true)
 
 
 // Cheap sensor tend to be inaccurate. Accuracy can be increased by adding two temperatures as measured by the sensor and the 'real' temperature as measured with a calibrated thermometer
@@ -373,20 +373,20 @@ void showCapabilities(uint8_t secondaryFlags, uint8_t secondaryMemberIDCode) {
 uint8_t requestServices(float CHSetpoint) {
   uint8_t primaryFlags = 0;
 
-  // BOILER_DOMESTIC_HOT_WATER_MODE is a #define. If defined 'true' then domestic hot water is enabled
-  if(BOILER_DOMESTIC_HOT_WATER_MODE) {
+  // BOILER_ENABLE_DOMESTIC_HOT_WATER is a #define. If defined 'true' then domestic hot water is enabled
+  if(BOILER_ENABLE_DOMESTIC_HOT_WATER) {
     Serial.println("+ Enable Domestic Hot Water (DHW)");
     primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_DHW_ENABLE);
   }
 
-  // BOILER_HEATING_MODE is a #define. If defined 'true' then central heating is enabled.
-  if(BOILER_HEATING_MODE && CHSetpoint > CH_MIN_SETPOINT) {
+  // BOILER_ENABLE_HEATING is a #define. If defined 'true' then central heating is enabled.
+  if(BOILER_ENABLE_HEATING && CHSetpoint > CH_MIN_SETPOINT) {
     Serial.println("+ Enable Central Heating (CH)");
     primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_CH_ENABLE);
   }
 
-  // BOILER_COOLING_MODE is a #define. If defined 'true' then cooling is enabled
-  if(BOILER_COOLING_MODE) {
+  // BOILER_ENABLE_COOLING is a #define. If defined 'true' then cooling is enabled
+  if(BOILER_ENABLE_COOLING) {
     Serial.println("+ Enable cooling");
     primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_COOLING_ENABLE);
   }

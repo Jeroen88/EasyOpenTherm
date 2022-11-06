@@ -57,9 +57,9 @@
 #define CH_MAX_SETPOINT (60.0f)                 // If your house is well isolated and/or you have low temperature radiators this could be as low as 40.0f
 #define CH_MIN_SETPOINT (10.0f)                 // If the boiler starts it will warm up untill at least this temperature (unless the desired room temperature is reached before)
 
-#define ENABLE_HEATING (true)                   // If the boiler supports Central Heating (CH), use the boiler for heating
-#define ENABLE_COOLING (true)                   // If the boiler supports cooling, use the boiler for cooling
-#define ENABLE_DOMESTIC_HOT_WATER (true)        // If the boiler supports Domestic Hot Water (DHW), use the boiler for DHW
+#define BOILER_ENABLE_HEATING (true)            // If the boiler supports Central Heating (CH), use the boiler for heating
+#define BOILER_ENABLE_COOLING (true)            // If the boiler supports cooling, use the boiler for cooling
+#define BOILER_ENABLE_DOMESTIC_HOT_WATER (true) // If the boiler supports Domestic Hot Water (DHW), use the boiler for DHW
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
@@ -185,22 +185,22 @@ void loop() {
 
     // primaryFlags is used to tell the secondary device (boiler) what available services (Central heating, cooling, domestic hot water) it wants to make use of, if present
     // The meaning of each bit is defined in enum class OpenTherm::STATUS_FLAGS
-    // ENABLE_DOMESTIC_HOT_WATER is a #define. If defined 'true' then domestic hot water is enabled if it is available in the boiler. The previously read secondaryFlags are used to detect this capability
+    // BOILER_ENABLE_DOMESTIC_HOT_WATER is a #define. If defined 'true' then domestic hot water is enabled if it is available in the boiler. The previously read secondaryFlags are used to detect this capability
     uint8_t primaryFlags;
-    if(ENABLE_DOMESTIC_HOT_WATER && (secondaryFlags & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_DHW))) {
+    if(BOILER_ENABLE_DOMESTIC_HOT_WATER && (secondaryFlags & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_DHW))) {
       Serial.println("Enable Domestic Hot Water (DHW)");
       primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_DHW_ENABLE);
     }
 
-    // ENABLE_HEATING is a #define. If defined 'true' then central heating is enabled.
-//    if(roomTemperature < ROOM_TEMPERATURE_SETPOINT && ENABLE_HEATING) {
-    if(ENABLE_HEATING) {
+    // BOILER_ENABLE_HEATING is a #define. If defined 'true' then central heating is enabled.
+//    if(roomTemperature < ROOM_TEMPERATURE_SETPOINT && BOILER_ENABLE_HEATING) {
+    if(BOILER_ENABLE_HEATING) {
       Serial.println("Enable Central Heating (CH)");
       primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_CH_ENABLE);
     }
 
-    // ENABLE_COOLING is a #define. If defined 'true' then cooling is enabled. secondaryFlags is used to detect the capability
-    if(ENABLE_COOLING && (secondaryFlags & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_COOLING))) {
+    // BOILER_ENABLE_COOLING is a #define. If defined 'true' then cooling is enabled. secondaryFlags is used to detect the capability
+    if(BOILER_ENABLE_COOLING && (secondaryFlags & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_COOLING))) {
       Serial.println("Enable cooling");
       primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_COOLING_ENABLE);
     }
