@@ -90,6 +90,8 @@ void setup() {
   delay(5000);        // Give Serial monitor in Arduino IDE 2.0.1 some time for a board with native USB support
   Serial.println("\n\nStarted");
 
+  Serial.println("Only status commands (DATA-IDs) and read commands (DATA-IDs) are sent to the secondary. Test write commands yourself, so that you are aware of what you write to the secondary\n");
+
   // primaryFlags is used to tell the secondary device (boiler) what available services (central heating, cooling, domestic hot water) it wants to make use of
   // Each service is a bit in the primaryFlags. The right bits are set by calling requestServices();
   uint8_t primaryFlags = requestServices();
