@@ -122,13 +122,13 @@ public:
     SECONDARY_PRODUCT_VERSION       = 127,      // u8, u8           The secondary device product version number and type as defined by the manufacturer
 
     // Class 4 : Sensor and Informational Data
-    RELATIVE_MODULATION_LEVEL       = 17,       // f8.8             Mandatory; Percent modulation between min and max modulation levels. i.e. 0% = Minimum modulation level and 100% = Maximum modulation level (%)
+    RELATIVE_MODULATION_LEVEL       = 17,       // f8.8             Mandatory for secondary to respond. Percent modulation between min and max modulation levels. i.e. 0% = Minimum modulation level and 100% = Maximum modulation level (%)
     CH_WATER_PRESSURE               = 18,       // f8.8             Water pressure of the boiler CH circuit (bar)
     DHW_FLOW_RATE                   = 19,       // f8.8             Water flow rate through the DHW circuit (l/min)
     DAY_TIME                        = 20,       // special, u8      Day of Week and Time of Day; special: bit 7,6,5 day of week (1=Monday, etc...., 0=no DoW info available); bit 4,3,2,1,0 hours, LSB is minutes
     DATE                            = 21,       // u8, u8           Calendar date: Month, Day of month
     YEAR                            = 22,       // u16              Calendar year; note : 1999-2099 will normally be sufficient
-    BOILER_WATER_TEMP               = 25,       // f8.8             Mandatory; Flow water temperature from boiler (°C)
+    BOILER_WATER_TEMP               = 25,       // f8.8             Mandatory for secondary to respond; Flow water temperature from boiler (°C)
     DHW_TEMPERATURE                 = 26,       // f8.8             Domestic hot water temperature (°C)
     OUTSIDE_TEMPERATURE             = 27,       // f8.8             Outside air temperature (°C)
     RETURN_WATER_TEMPERATURE        = 28,       // f8.8             Return water temperature to boiler (°C)
