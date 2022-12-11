@@ -103,9 +103,9 @@
 
 
 // GPIO pin used to read data from the boiler or HVAC. Must support interrupts
-#define OT_RX_PIN (34)
+#define OT_RX_PIN (35)
 // GPIO pin used to send data to the boiier or HVAC. Must not be a 'read only' GPIO
-#define OT_TX_PIN (17)
+#define OT_TX_PIN (33)
 
 // The address of the BME280 temperature sensor
 #define BME_ADDRESS (0x76)

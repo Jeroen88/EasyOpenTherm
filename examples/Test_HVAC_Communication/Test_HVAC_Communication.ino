@@ -32,8 +32,9 @@
 #include <EasyOpenTherm.h>
 
 
-#define OT_RX_PIN (34)
-#define OT_TX_PIN (17)
+// ESP32-S2
+#define OT_RX_PIN (35)
+#define OT_TX_PIN (33)
 
 
 void setup() {
