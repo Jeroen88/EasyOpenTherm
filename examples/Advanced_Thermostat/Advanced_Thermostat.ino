@@ -140,14 +140,14 @@ static const char * TAG = __FILE__;
 
 
 // Update these with values suitable for your network.
-const char * ssid = "H369A394602";
-const char * password = "445396F996E9";
+const char * ssid = "YOUR WIFI NETWORK NAME";
+const char * password = "YOUR WIFI PASSWORD";
 
 
 // Update these with values suitable for your MQTT broker, in this example TLS or certificates are not used
-const char * mqtt_server = "homeassistant.local";
-const char * mqtt_user = "mosquitto";
-const char * mqtt_password = "M0squ1tt0";
+const char * mqtt_server = "YOUR MQTT SERVER NAME OR IP ADDRESS";
+const char * mqtt_user = "YOUR MQTT USER NAME";
+const char * mqtt_password = "YOUR MQTT PASSWORD";
 
 
 // Your time zone, used to display times correctly (and needed for WiFiClientSecure TLS certificate validation, if used)

@@ -4,8 +4,20 @@ Create your own thermostat with this library and save money on your energy bills
 
 The library complies with the OpenTherm specification. Control any (condensing) boiler or air conditioner (HVAC) that also meets the OpenTherm specification.
 
-The library can be easily installed in the Arduino IDE. It has been tested on an ESP32 microcontroller and will also work on an ESP8266.
-To connect the boiler, you will need an [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/).
+The library can be easily installed in the Arduino IDE. It has been tested on an ESP32 microcontroller and may also work on an ESP8266.
+To connect the boiler, you will need an [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/) or an [OpenTherm controller Shield](https://www.tindie.com/products/jeroen88/opentherm-controller-shield/).
+
+## Fully functioning Home Assistant Boiler Thermostat in examples
+![Home Assistant logo](https://raw.githubusercontent.com/home-assistant/assets/master/logo/logo-small.png)
+![MQTT logo](https://brands.home-assistant.io/_/mqtt/logo.png)\
+
+The Advanced_Thermostat example is specially designed for Home Assistant
+- Setup the MQTT integration in Home Assistant, if not already done
+- Set your WiFi network name and password in Advanced_Thermostat.ino
+- Set your MQTT broker hostname or IP address, MQTT user name and MQTT password in Advanced_Thermostat.ino
+- Compile and flash to an ESP32-S2 with an [OpenTherm controller Shield](https://www.tindie.com/products/jeroen88/opentherm-controller-shield/)
+- Forward the temperature of a room thermometer to the Thermostat using a Home Assistant Automation
+The thermostat (Climate) integration is automatically added to Home Assistant, together with several sensors. More information in ==TO DO LINK TO README.md in EXAMPLE==
 
 ## Installation
 - Install the EasyOpenTherm library directly using the Arduino IDE library manager
