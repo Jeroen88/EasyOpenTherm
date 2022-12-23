@@ -95,6 +95,9 @@ Topics to subscribe to:
 - Metriot/EasyOpenTherm/22b5ea03f784/relative_modulation/state: to receive 'relative modulation' updates of the format  ```{"relative_modulation":0.0}```
 - Metriot/EasyOpenTherm/22b5ea03f784/water_pressure/state: to receive 'water pressure' updates of the format  ```{"water_pressure":2.2}```
 
+### Modifing Advanced_Thermostat.ino for HVACs
+It should be possible to modify the program to work with HVACs. It should be relatively straight forward (maybe a flag can_heat must be added, the right status should be used, the flags need adaptations and the DATA-IDs need to be changed, to name a few). I do not have a HVAC, but maybe I can help and publish a HVAC example too.
+
 ## OpenTherm_Show_DATA-IDs.ino
 Sends all known DATA-IDs to the secondary and shows it's response. Can be used for both boilers and HVACs, although the boiler information is more extensive. Also the data types for the HVAC calls may not be correct.
 
@@ -151,5 +154,4 @@ Number of times flame signal was too low: 13
 ```
 
 ## Basic_Thermostat_Commands.ino
-Shows the most basic commands that can be sent from a thermostat (primary) to a boiler (secondary) and may also be used as inspiration for a HVAC thermostat. It sets the room temperature setpoint to a fixed value, which is not reasonable for a real thermostat. But it will start your boiler and heat up your house! You need a temperature sensor connected to the microcontroller. The program used a BME280 sensor, but any sensor can be used, as long as you adapt the program accordingly.
-
+Shows the most basic commands that can be sent from a thermostat (primary) to a boiler (secondary) and may also be used as inspiration for a HVAC thermostat. It sets the room temperature setpoint to a fixed value, which is not reasonable for a real thermostat. But it will start your boiler and heat up your house!
