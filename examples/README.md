@@ -1,6 +1,6 @@
 # Examples for OpenTherm Arduino ESP32 Library
 
-Several examples are given, all fully functional, from very basic to advanced. The first thing you should always do is to run Test_Boiler_Communication.ino or Test_HVAC_Communication.ino, to make sure your [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/) or [OpenTherm controller Shield](https://www.tindie.com/products/jeroen88/opentherm-controller-shield/) is correctly wired, the right GPIO pins are configured and the secondary boiler or HVAC is responding to the requests of the primary thermostat.
+Several examples are given, all fully functional, from very basic to advanced. The first thing you should always do is to run Test_Boiler_Communication.ino or Test_HVAC_Communication.ino, to make sure your [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/) or [OpenTherm controller Shield](https://www.tindie.com/products/jeroen88/opentherm-shield/) is correctly wired, the right GPIO pins are configured and the secondary boiler or HVAC is responding to the requests of the primary thermostat.
 
 ## Test_Boiler_Communication.ino and Test_HVAC_Communication.ino
 Basic test of your setup. If everything is OK, you will see:
