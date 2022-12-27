@@ -22,7 +22,7 @@
  *      (https://www.home-assistant.io/integrations/mqtt/). The MQTT broker should be reachable without
  *      using certificates (TLS).
  *    - Change the WiFi credentials and MQTT credentials in this software
- *    - Flash this software to a ESP mini, connect the ESP to the OpenTherm Adapter and connect the
+ *    - Flash this software to a ESP32-S2 mini, connect the ESP to the OpenTherm Adapter and connect the
  *      OpenTherm Adapter to the boiler with the two wires of your present thermostat (replace it)
  *    THAT'ALL, all integrations should automatically appear in Home Assistant and be active!
 
@@ -57,11 +57,12 @@
  *    update topic.
  *    
  *    Unlike other examples on the internet, MQTT_Advanced_Thermostat already is a fully functional 
- *    thermostat: just configure it once change the room temperature setpoint any time you want to.
+ *    thermostat: just configure it once change, regularly publish teh room temperature and update the the 
+ *    room temperature setpoint any time your boiler to heat up the room to that setpoint.
  *
  *    Use your home automation system, like Home Assistant or Domoticz, to create e.g. schedules
  *    and geo fencing, and have this program control your boiler by just setting the room 
- *    temperature setpoint (and switching it on and off if the boiler supports cooling)
+ *    temperature setpoint.
  *
  *    Please note that after a reboot or a power cycle the thermostat starts in 'OFF' mode. This
  *    means that it will never activate the boiler after such an event. An 'ON' request is needed to 
@@ -151,7 +152,7 @@ const char * mqtt_password = "YOUR MQTT PASSWORD";
 
 
 // Your time zone, used to display times correctly (and needed for WiFiClientSecure TLS certificate validation, if used)
-#define TZ_Europe_Amsterdam	"CET-1CEST,M3.5.0,M10.5.0/3"
+#define TZ_Europe_Amsterdam	"CET-1CEST-2,M3.5.0,M10.5.0/3"
 #define TIME_ZONE TZ_Europe_Amsterdam
 
 
