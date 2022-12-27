@@ -14,7 +14,7 @@ The Test_HVAC_Communication.ino program is **not tested** because I do not own s
 ![Home Assistant logo](https://raw.githubusercontent.com/home-assistant/assets/master/logo/logo-small.png)
 ![MQTT logo](https://brands.home-assistant.io/_/mqtt/logo.png)\
 
-The Advanced_Thermostat example is specially designed for Home Assistant with a MQTT integration. This example can also be used with other home automation software that supports MQTT. although auto discovery of the thermostat and the sensors will not work in this case.
+The Advanced_Thermostat.ino example is specially designed for Home Assistant with a MQTT integration. This example can also be used with other home automation software that supports MQTT. although auto discovery of the thermostat and the sensors will not work in this case.
 ### Prerequisites
 - An OpenTherm controller connected to the thermostat wires
 - Home Assistant installed
