@@ -35,13 +35,13 @@ action:
       payload: "{\"temperature\":{{ trigger.to_state.state }}}"
 mode: single
 ```
-Replace the entity_id with the id of your thermometer and replace '22b5ea03f784' number in the topic with your number (can be found in the logging)\
+Replace the entity_id with the id of your thermometer and replace '22b5ea03f784' number in the topic with your number (can be found in the logging)
 
 The thermostat (Climate) integration is automatically added to Home Assistant, together with several sensors.
 ### Thermostat behaviour
 - The thermostat is enabled in Home Assistant if it communicates with an OpenTherm boiler
 - The thermostat shows the room temperature if it receives temperature updates over MQTT
-- The desired room temerature, the room temperature setpoint, can be set by turning the dial
+- The desired room temperature, the room temperature setpoint, can be set by turning the dial
 - As long as the thermostat is switched off it will never start heating
 - Press the flame below the dial to turn the thermostat on
 - If the room temperature is below setpoint (minus a 0.1 ºC deadzone) the boiler will start heating
@@ -51,9 +51,9 @@ The thermostat (Climate) integration is automatically added to Home Assistant, t
 The following sensors are always added:
 - EasyOpenTherm xxxx Boiler Setpoint: showing the setpoint of the central heating boiler water temperature
 - EasyOpenTherm xxxx Thermostat RSSI: showing the WiFi signal strength of the connection with the router
-- EasyOpenTherm xxxx Boiler Flame: showing 'on' if the boiler is running for Central Heating or Domestic Hot Water, 'off' otherwise\
+- EasyOpenTherm xxxx Boiler Flame: showing 'on' if the boiler is running for Central Heating or Domestic Hot Water, 'off' otherwise
 
-The following sensors are optionally added:
+The following sensors are conditionally added:
 - EasyOpenTherm xxxx Boiler Domestic Hot Water: is only added if the boiler supports DHW, showing 'on' if the boiler is running for DHW
 - EasyOpenTherm xxxx Boiler Return Temperature: is only added if a return temperature sensor value can be read using the OpenTherm interface. It shows the temperature of the water returning to the boiler
 - EasyOpenTherm xxxx Boiler Flow Temperature: is only added if a flow temperature sensor value can be read using the OpenTherm interface. It shows the temperature of the water leaving the boiler
