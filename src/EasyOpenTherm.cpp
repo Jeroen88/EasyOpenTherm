@@ -190,6 +190,9 @@ bool                    OpenTherm::_execute(OTDataLinkLayer &                 da
 
   uint32_t startMillis = millis();
   for(;;) {
+#if defined(ESP8266)
+    yield();
+#endif
     if(millis() - startMillis >= _timeoutMs) {
       _lastError = ERROR_CODES::SEND_TIMEOUT;
 
@@ -203,6 +206,9 @@ bool                    OpenTherm::_execute(OTDataLinkLayer &                 da
 
   startMillis = millis();
   for(;;) {
+#if defined(ESP8266)
+    yield();
+#endif
     if(millis() - startMillis >= _timeoutMs) {
       _lastError = ERROR_CODES::RECEIVE_TIMEOUT;
       _OTP->reset();
