@@ -37,7 +37,7 @@
 
 
                         OpenTherm::~OpenTherm() {
-  delete _OTP;  
+  delete _OTP;
 }
 
 
@@ -108,6 +108,7 @@ bool                    OpenTherm::read(READ_DATA_ID                          ms
   OTDataLinkLayer data;
   data.set(OTDataLinkLayer::MSG_TYPE::PRIMARY_TO_SECONDARY_READ_DATA, uint8_t(msgID), 0x0000);
 
+
   if(_execute(data)) {
     valueMSB = int8_t(data.valueMSB());
     valueLSB = int8_t(data.valueLSB());
@@ -123,6 +124,7 @@ bool                    OpenTherm::read(READ_DATA_ID                          ms
                                         float &                               value) {
   OTDataLinkLayer data;
   data.set(OTDataLinkLayer::MSG_TYPE::PRIMARY_TO_SECONDARY_READ_DATA, uint8_t(msgID), 0x0000);
+
 
   if(_execute(data)) {
     value = float(data.value()) / 256.0;
@@ -283,12 +285,12 @@ uint16_t                OTDataLinkLayer::value() {
 
 
 uint8_t                 OTDataLinkLayer::valueMSB() {
-  return uint8_t((_frame & 0xff00) >> 8);
+  return (uint8_t)((_frame & 0xff00) >> 8);
 }
 
 
 uint8_t                 OTDataLinkLayer::valueLSB() {
-  return uint8_t(_frame & 0xff);
+  return (uint8_t)(_frame & 0xff);
 }
 
 
