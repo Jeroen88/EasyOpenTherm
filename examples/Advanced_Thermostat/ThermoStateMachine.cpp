@@ -25,19 +25,20 @@ bool                      ThermoStateMachine::connected() {
 
 
 void                      ThermoStateMachine::initPrimaryFlags(OpenTherm::CONFIGURATION_FLAGS configurationFlags) {
-  _configurationFlags = uint8_t(configurationFlags);
+  _configurationFlags = (uint8_t) configurationFlags;
   _primaryFlags = 0;
   // Enable DHW if boiler is capable of DHW
-  if(_configurationFlags & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_DHW_PRESENT)) {
-    _primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_DHW_ENABLE);
+  if(_configurationFlags & ((uint8_t) OpenTherm::CONFIGURATION_FLAGS::SECONDARY_DHW_PRESENT)) {
+    _primaryFlags |= (uint8_t) OpenTherm::STATUS_FLAGS::PRIMARY_DHW_ENABLE;
   }
   // If boiler is capable of cooling, signal this by setting 'canCool'
-  _canCool = (_configurationFlags & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_COOLING)) != 0;
+  _canCool = (_configurationFlags & (uint8_t) OpenTherm::CONFIGURATION_FLAGS::SECONDARY_COOLING) != 0;
 
   // Do not enable OTC
-  // _primaryFlags |= uint8_t(OpenTherm::STATUS_FLAGS::PRIMARY_OTC_ENABLE);
+  // _primaryFlags |= (uint8_t) OpenTherm::STATUS_FLAGS::PRIMARY_OTC_ENABLE;
 
   _state = ThermostatState::OFF;
+  _state_c_str = "Off";
 }
 
 
@@ -195,8 +196,11 @@ bool                      ThermoStateMachine::update(float                    ro
     _previousRoomTemperatureSetpoint = roomTemperatureSetpoint;
 
     return false;
+  } else if(_state == ThermostatState::OFF) {
+
+    return false;
   } else {
-    Serial.println("Unknown state");
+    Serial.printf("Unknown state %d\n", _state);
 
     return false;
   }
@@ -263,5 +267,3 @@ bool                      ThermoStateMachine::getRoomTemperatureStale() {
 const char *              ThermoStateMachine::c_str() {
   return _state_c_str;
 }
-
-

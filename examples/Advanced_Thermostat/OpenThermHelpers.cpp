@@ -134,7 +134,7 @@ bool readSecondaryConfiguration(OpenTherm &                         thermostat,
       return true;
     }
 
-    configurationFlags = OpenTherm::CONFIGURATION_FLAGS(flags);
+    configurationFlags = (OpenTherm::CONFIGURATION_FLAGS) flags;
 
     return true;
   } else {

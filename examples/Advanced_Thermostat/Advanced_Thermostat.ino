@@ -112,20 +112,15 @@ static const char * TAG = __FILE__;
 
 #include <Arduino.h>
 
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#else
 #include <WiFi.h>
+#endif
 
 #include <time.h>
 
 #include <ArduinoJson.h>
-
-// This example does not use the more popular PubSubClient, because that has too many issues, like losing a connection without possibilities to signal it and correct it
-// This MQTT client runs rock solid :)
-// https://github.com/monstrenyatko/ArduinoMqtt
-// Enable MqttClient logs
-#define MQTT_LOG_ENABLED 1
-// Include library
-#include <MqttClient.h>
-
 
 #include <OneWire.h>
 #include <DallasTemperature.h>
@@ -149,6 +144,7 @@ const char * password = "YOUR WIFI PASSWORD";
 const char * mqtt_server = "YOUR MQTT SERVER NAME OR IP ADDRESS";
 const char * mqtt_user = "YOUR MQTT USER NAME";
 const char * mqtt_password = "YOUR MQTT PASSWORD";
+const char * MQTT_ID = "EasyOpenTherm";   // Should be unique for your broker, see e.g. https://stackoverflow.com/questions/40078252/mosquitto-prevent-duplicate-login
 
 
 // Your time zone, used to display times correctly (and needed for WiFiClientSecure TLS certificate validation, if used)
@@ -156,8 +152,8 @@ const char * mqtt_password = "YOUR MQTT PASSWORD";
 #define TIME_ZONE TZ_Europe_Amsterdam
 
 
-// Define OT_RX_PIN, the GPIO pin used to read data from the boiler or HVAC. Must support interrupts
-// Define OT_TX_PIN, the GPIO pin used to send data to the boiier or HVAC. Must not be a 'read only' GPIO
+// Define OT_RX_PIN, the GPIO pin used to read data from the boiler or HVAC (TxD). Must support interrupts
+// Define OT_TX_PIN, the GPIO pin used to send data to the boiier or HVAC (RxD). Must not be a 'read only' GPIO
 // Define DALLAS, the GPIO pin used for the Dallas sensor, if used
 
 #if defined(ARDUINO_LOLIN_S2_MINI)
@@ -168,11 +164,31 @@ const char * mqtt_password = "YOUR MQTT PASSWORD";
 #define OT_RX_PIN (10)
 #define OT_TX_PIN (8)
 #define DALLAS (4)
+#elif defined(ARDUINO_ESP8266_WEMOS_D1MINIPRO)
+// I can't get my "D1 MINI PRO Based ESP8266EX" passed a WiFi connection
+// D1 is GPIO5
+#define OT_RX_PIN (5)
+// D2 is GPIO4
+#define OT_TX_PIN (4)
+// D7 is GPIO13
+#define DALLAS (13)
+#elif defined(ESP32)
+#define OT_RX_PIN (33)
+#define OT_TX_PIN (16)
+#define DALLAS (17)
+#elif defined(ESP8266)
+// GPIO5 is D1
+#define OT_RX_PIN (5)
+// GPIO4 is D2
+#define OT_TX_PIN (4)
+// D7 is GPIO13
+#define DALLAS (13)
 #else
 #define OT_RX_PIN (35)
 #define OT_TX_PIN (33)
 #define DALLAS (-1)
 #endif
+
 
 // The maximum room temperature
 #define ROOM_TEMPERATURE_MAX_SETPOINT (30.0f)
@@ -212,8 +228,7 @@ const size_t MSG_BUFFER_RECV_SIZE = 256;  // Too small a receive buffer will fai
 // Define a global WiFiClient instance for WiFi connection
 WiFiClient  wiFiClient;
 
-#define MQTT_ID	"EasyOpenTherm"
-static MqttClient *mqtt = NULL;
+PubSubClient *mqtt = NULL;
 
 
 // GPIO where the DS18B20 is connected to, set to '-1' if not used
@@ -282,12 +297,32 @@ float roomTemperature;
 
 
 // ============== Subscription callbacks ========================================
-void processRoomTemperatureMessage(MqttClient::MessageData& md) {
+void PubSubClientCallback(char* topic, byte* payload, unsigned int length) {
+  // handle message arrived
+	char payloadReceived[length + 1];
+	memcpy(payloadReceived, payload, length);
+	payloadReceived[length] = '\0';
+
+  Serial.printf("Received topic '%s' with payload '%s'\n", topic, payloadReceived);
+
+  const char * subscriptionTopic = topicByReference("temperature_command_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_CLIMATE);
+  if(subscriptionTopic == nullptr) return;
+  if(strcmp(topic, subscriptionTopic) == 0) return processSetpointTemperatureMessage(payloadReceived);
+
+  subscriptionTopic = topicByReference("mode_command_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_CLIMATE);
+  if(subscriptionTopic == nullptr) return;
+  if(strcmp(topic, subscriptionTopic) == 0) return processClimateMessage(payloadReceived);
+
+  subscriptionTopic = topicByReference("current_temperature_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_CLIMATE);
+  if(subscriptionTopic == nullptr) return;
+  if(strcmp(topic, subscriptionTopic) == 0) return processRoomTemperatureMessage(payloadReceived);
+
+  Serial.printf("Received unhandled topic '%s' with payload '%s'\n", topic, payloadReceived);
+}
+
+
+void processRoomTemperatureMessage(const char * payload) {
 Serial.println("processRoomTemperatureMessage");
-	const MqttClient::Message& msg = md.message;
-	char payload[msg.payloadLen + 1];
-	memcpy(payload, msg.payload, msg.payloadLen);
-	payload[msg.payloadLen] = '\0';
 
   StaticJsonDocument<32> roomTemperatureMsgDoc;
   DeserializationError error = deserializeJson(roomTemperatureMsgDoc, payload);
@@ -314,12 +349,7 @@ Serial.printf("Received room temperature %.01f ºC\n", roomTemperature);
 }
 
 
-void processSetpointTemperatureMessage(MqttClient::MessageData& md) {
-	const MqttClient::Message& msg = md.message;
-	char payload[msg.payloadLen + 1];
-	memcpy(payload, msg.payload, msg.payloadLen);
-	payload[msg.payloadLen] = '\0';
-
+void processSetpointTemperatureMessage(const char * payload) {
   float setpoint;
   if(sscanf(payload, "%f", &setpoint) != 1) {
     ESP_LOGE(TAG, "Payload is not a float: '%s'", payload);
@@ -333,11 +363,7 @@ Serial.printf("Received room temperature setpoint '%s'\n", payload);
 }
 
 
-void processClimateMessage(MqttClient::MessageData& md) {
-	const MqttClient::Message& msg = md.message;
-	char payload[msg.payloadLen + 1];
-	memcpy(payload, msg.payload, msg.payloadLen);
-	payload[msg.payloadLen] = '\0';
+void processClimateMessage(const char * payload) {
 	ESP_LOGI(TAG,
 		"Message arrived: qos %d, retained %d, dup %d, packetid %d, payload:[%s]",
 		msg.qos, msg.retained, msg.dup, msg.id, payload
@@ -362,27 +388,28 @@ void setup() {
   delay(5000);                                                     // For debug only: give the Serial Monitor some time to connect to the native USB of the MCU for output
   Serial.println("\n\nStarted");
   Serial.printf("Chip ID is %s\n", chipID());
-  ESP_LOGI(TAG, "Chip ID is %s", chipID());
+  Serial.printf("Short ID is %s\n", shortID());
 
   Serial.printf("OpenTherm RX pin is %d, TX pin is %d\n", OT_RX_PIN, OT_TX_PIN);
 
-  pinMode(LED_BUILTIN, OUTPUT);
+//  pinMode(LED_BUILTIN, OUTPUT);
 
   // Connect WiFi
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
+  WiFi.setAutoReconnect(false);
   WiFi.begin(ssid, password);
 
   uint32_t startMillis = millis();  
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    digitalWrite(LED_BUILTIN, digitalRead(LED_BUILTIN) == LOW ? HIGH : LOW);
+//    digitalWrite(LED_BUILTIN, digitalRead(LED_BUILTIN) == LOW ? HIGH : LOW);
 
     if(millis() - startMillis > 15000) ESP.restart();
   }
 
-  ESP_LOGI(TAG, "WiFi connected to %s", ssid);
-  ESP_LOGI(TAG, "IP address: %s", WiFi.localIP().toString().c_str());
+  Serial.printf("WiFi connected to %s\n", ssid);
+  Serial.printf("IP address: %s\n", WiFi.localIP().toString().c_str());
 
 // Set time and date, necessary for HTTPS certificate validation
   configTzTime(TIME_ZONE, "pool.ntp.org", "time.nist.gov");
@@ -400,7 +427,11 @@ void setup() {
 
     if(millis() - startMillis > 15000) ESP.restart();
   }
+#if defined(ESP8266)
+  digitalWrite(LED_BUILTIN, HIGH);
+#else
   digitalWrite(LED_BUILTIN, LOW);
+#endif
   Serial.println();
 
   const struct tm  * timeinfo = localtime(&now);
@@ -417,32 +448,8 @@ void setup() {
 
   }
 
-	// Setup MQTT client
-	MqttClient::System *mqttSystem = new System;
-#if defined(ARDUINO_LOLIN_S2_MINI)
-  MqttClient::Logger *mqttLogger = new MqttClient::LoggerImpl<USBCDC>(Serial);
-#elif defined(ARDUINO_LOLIN_C3_MINI)
-  MqttClient::Logger *mqttLogger = new MqttClient::LoggerImpl<HWCDC>(Serial);
-#else
-  MqttClient::Logger *mqttLogger = new MqttClient::LoggerImpl<HardwareSerial>(Serial);
-#endif
-	MqttClient::Network * mqttNetwork = new MqttClient::NetworkClientImpl<WiFiClient>(wiFiClient, *mqttSystem);
-	//// Make MSG_BUFFER_SIZE bytes send buffer
-	MqttClient::Buffer *mqttSendBuffer = new MqttClient::ArrayBuffer<MSG_BUFFER_SEND_SIZE>();
-	//// Make MSG_BUFFER_SIZE bytes receive buffer
-	MqttClient::Buffer *mqttRecvBuffer = new MqttClient::ArrayBuffer<MSG_BUFFER_RECV_SIZE>();
-	//// Allow up to 4 subscriptions simultaneously
-  MqttClient::MessageHandlers *mqttMessageHandlers = new MqttClient::MessageHandlersDynamicImpl<4>();
-  // Note: the MessageHandlersDynamicImpl does not copy the topic string. The second parameter to MessageHandlersStaticImpl is the maximum topic size
-  // NOT TRUE: https://github.com/monstrenyatko/ArduinoMqtt/blob/15091f0b8c05f843f93b73db9a98f7b59ffb4dfa/src/MqttClient.h#L390
-//  MqttClient::MessageHandlers *mqttMessageHandlers = new MqttClient::MessageHandlersStaticImpl<4, 128>();
-	//// Configure client options
-	MqttClient::Options mqttOptions;
-	////// Set command timeout to 10 seconds
-	mqttOptions.commandTimeoutMs = 10000;
-	//// Make client object
-	mqtt = new MqttClient(mqttOptions, *mqttLogger, *mqttSystem, *mqttNetwork, *mqttSendBuffer,	*mqttRecvBuffer, *mqttMessageHandlers);
-
+  // Do not let PubSubClient handle the TCP/IP socket connection, because of connection issues
+  Serial.println("Connect to MQTT broker...");
   wiFiClient.connect(mqtt_server, 1883);
   if(!wiFiClient.connected()) {
     ESP_LOGE(TAG, "Can't establish the TCP connection");
@@ -450,7 +457,10 @@ void setup() {
     ESP.restart();
   }
 
-  Serial.println("Connect MQTT client...");
+	// Setup MQTT client
+  mqtt = new PubSubClient(wiFiClient);
+  mqtt->setBufferSize(1024);
+  mqtt->setCallback(PubSubClientCallback);
 
   bool MQTTConnected = connectMQTT(*mqtt, MQTT_ID, mqtt_user, mqtt_password);
   if(MQTTConnected) {
@@ -487,14 +497,14 @@ Serial.println("MQTT NOT connected");
   if(!validJson(EASYOPENTHERM_MQTT_DISCOVERY_MSG_DHW_BINARY_SENSOR)) Serial.printf("Invalid JSON '%s'\n", EASYOPENTHERM_MQTT_DISCOVERY_MSG_DHW_BINARY_SENSOR);
 
   // Add all 'always present' entities (the other entities are added only if supported by the boiler)
+  Serial.println("Add default entities to Home Assistant by publishing discovery messages to MQTT broker...");
   addEntity(*mqtt, "climate", "climate", EASYOPENTHERM_MQTT_DISCOVERY_MSG_CLIMATE);
   addEntity(*mqtt, "sensor", "boiler_setpoint", EASYOPENTHERM_MQTT_DISCOVERY_MSG_SETPOINT_SENSOR);
   addEntity(*mqtt, "sensor", "thermostat_rssi", EASYOPENTHERM_MQTT_DISCOVERY_MSG_RSSI_SENSOR);
   addEntity(*mqtt, "binary_sensor", "boiler_flame", EASYOPENTHERM_MQTT_DISCOVERY_MSG_FLAME_BINARY_SENSOR);
 
-  char payload[16];
-  snprintf(payload, sizeof payload, "%.01f", ROOM_TEMPERATURE_MIN_SETPOINT);
   // Set all sensors, except those that are directly updated, to 'None', the binary sensor to 'Unknown'
+  Serial.println("Set sensor values to 'none' by publishing to MQTT sensor state topics...");
   publish(*mqtt, topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_SETPOINT_SENSOR), "{\"ch_setpoint\":\"None\"}");
   publish(*mqtt, topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_FLOW_TEMPERATURE_SENSOR), "{\"flow_temperature\":\"None\"}");
   publish(*mqtt, topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_RETURN_TEMPERATURE_SENSOR), "{\"return_temperature\":\"None\"}");
@@ -511,7 +521,8 @@ Serial.println("MQTT NOT connected");
 // If the boikler can both heat and cool adds 'auto', 'off', 'cool' and 'heat' to the thermmostat modes
 // If the boikler can only heat adds 'off' and 'heat' to the thermmostat modes
 void updateClimateEntity(bool                           canCool) {
-  StaticJsonDocument<fullJsonDocSize> discoveryMsgDoc;
+//  StaticJsonDocument<fullJsonDocSize> discoveryMsgDoc;
+  DynamicJsonDocument discoveryMsgDoc(fullJsonDocSize);
 
   if(discoveryMsgToJsonDoc(discoveryMsgDoc, EASYOPENTHERM_MQTT_DISCOVERY_MSG_CLIMATE)) {
     JsonArray modesArray = discoveryMsgDoc["modes"];
@@ -552,7 +563,6 @@ void updateDHWEntity(bool                             enableDHW) {
 void updateFlameSensor(uint8_t                          statusFlags) {
   static bool flameSensorInitialised = false;
   static uint8_t previousStatusFlags = 0;
-Serial.printf("Secondary status flags is 0x%02x\n", statusFlags);
 
   if(!flameSensorInitialised || (statusFlags & uint8_t(OpenTherm::STATUS_FLAGS::SECONDARY_FLAME_STATUS)) != (previousStatusFlags & uint8_t(OpenTherm::STATUS_FLAGS::SECONDARY_FLAME_STATUS))) {
     const char * topic = topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_FLAME_BINARY_SENSOR);
@@ -591,10 +601,11 @@ void updateDHWSensor(uint8_t                            statusFlags) {
 // updateSensors
 // Update the values of all 'interval' sensors in Home Assistant by sending the value in the right format to the topic looked up in the discovery JSON. OpenTherm sensor can be read and do not have 
 // an entity yet in Home Assistant are created by sending the discovery JSON to the right '/config' topic.
-void updateSensors(MqttClient &                         client,
+void updateSensors(PubSubClient &                       client,
+                    bool                                isConnectedOT,
                     float                               CHSetpoint,
                     uint32_t &                          previousOTCommunicationMs) {
-  if(client.isConnected()) {
+  if(client.connected()) {
     char payload[64];
     const char * topic;
 
@@ -611,74 +622,80 @@ void updateSensors(MqttClient &                         client,
       publish(client, topic, payload);
     }
 
-    // Publish the Central Heating setpoint temperature
-    snprintf(payload, sizeof payload, "{\"ch_setpoint\":%.01f}", CHSetpoint);
-    topic = topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_SETPOINT_SENSOR);
-    publish(client, topic, payload);
+    if(isConnectedOT) {
+      // Publish the Central Heating setpoint temperature
+      snprintf(payload, sizeof payload, "{\"ch_setpoint\":%.01f}", CHSetpoint);
+      topic = topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_SETPOINT_SENSOR);
+      publish(client, topic, payload);
 
-    float value;
-    // Test if Relative Modulation Level can be read from the boiler
-    if(readSensor(thermostat, OpenTherm::READ_DATA_ID::RELATIVE_MODULATION_LEVEL, value, previousOTCommunicationMs)) {
-      Serial.printf("Relative Modulation level is %.01f %\n", value);
-      // Use a static variable to keep track of the entity already being created
-      static bool relativeModulationLevelDiscoveryPublished = false;
-      if(!relativeModulationLevelDiscoveryPublished) {
-        // Create the entity
-        addEntity(client, "sensor", "relative_modulation", EASYOPENTHERM_MQTT_DISCOVERY_MSG_RELATIVE_MODULATION_SENSOR);
-        relativeModulationLevelDiscoveryPublished = true;
+      float value;
+      // Test if Relative Modulation Level can be read from the boiler
+      if(readSensor(thermostat, OpenTherm::READ_DATA_ID::RELATIVE_MODULATION_LEVEL, value, previousOTCommunicationMs)) {
+        Serial.printf("Relative Modulation level is %.01f %\n", value);
+        // Use a static variable to keep track of the entity already being created
+        static bool relativeModulationLevelDiscoveryPublished = false;
+        if(!relativeModulationLevelDiscoveryPublished) {
+          // Create the entity
+          addEntity(client, "sensor", "relative_modulation", EASYOPENTHERM_MQTT_DISCOVERY_MSG_RELATIVE_MODULATION_SENSOR);
+          relativeModulationLevelDiscoveryPublished = true;
+        }
+        // Publish the Relative Modulation Level
+        snprintf(payload, sizeof payload, "{\"relative_modulation\":%.01f}", value);
+        topic = topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_RELATIVE_MODULATION_SENSOR);
+        publish(client, topic, payload);
       }
-      // Publish the Relative Modulation Level
-      snprintf(payload, sizeof payload, "{\"relative_modulation\":%.01f}", value);
-      topic = topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_RELATIVE_MODULATION_SENSOR);
-      publish(client, topic, payload);
-    }
-    // Test if Relative Central Heating Water Pressure can be read from the boiler
-    if(readSensor(thermostat, OpenTherm::READ_DATA_ID::CH_WATER_PRESSURE, value, previousOTCommunicationMs)) {
-      Serial.printf("Central Heating water pressure is %.01f bar\n", value);
-      // Use a static variable to keep track of the entity already being created
-      static bool waterPressureEntityAdded = false;
-        // Create the entity
-      if(!waterPressureEntityAdded) {
-        addEntity(client, "sensor", "water_pressure", EASYOPENTHERM_MQTT_DISCOVERY_MSG_WATER_PRESSURE_SENSOR);
-        waterPressureEntityAdded = true;
+
+      // Test if Relative Central Heating Water Pressure can be read from the boiler
+      if(readSensor(thermostat, OpenTherm::READ_DATA_ID::CH_WATER_PRESSURE, value, previousOTCommunicationMs)) {
+        Serial.printf("Central Heating water pressure is %.01f bar\n", value);
+        // Use a static variable to keep track of the entity already being created
+        static bool waterPressureEntityAdded = false;
+          // Create the entity
+        if(!waterPressureEntityAdded) {
+          addEntity(client, "sensor", "water_pressure", EASYOPENTHERM_MQTT_DISCOVERY_MSG_WATER_PRESSURE_SENSOR);
+          waterPressureEntityAdded = true;
+        }
+        // Publish the Central Heating Water Pressure
+        snprintf(payload, sizeof payload, "{\"water_pressure\":%.01f}", value);
+        topic = topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_WATER_PRESSURE_SENSOR);
+        publish(client, topic, payload);
       }
-      // Publish the Central Heating Water Pressure
-      snprintf(payload, sizeof payload, "{\"water_pressure\":%.01f}", value);
-      topic = topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_WATER_PRESSURE_SENSOR);
-      publish(client, topic, payload);
-    }
-    // Test if Flow Temperature can be read from the boiler
-    if(readSensor(thermostat, OpenTherm::READ_DATA_ID::BOILER_WATER_TEMP, value, previousOTCommunicationMs)) {
-      Serial.printf("Flow water temperature from boiler is %.01f %\n", value);
-      // Use a static variable to keep track of the entity already being created
-      static bool flowTemperatureEntityAdded = false;
-        // Create the entity
-      if(!flowTemperatureEntityAdded) {
-        addEntity(client, "sensor", "flow_temperature", EASYOPENTHERM_MQTT_DISCOVERY_MSG_FLOW_TEMPERATURE_SENSOR);
-        flowTemperatureEntityAdded = true;
+
+      // Test if Flow Temperature can be read from the boiler
+      if(readSensor(thermostat, OpenTherm::READ_DATA_ID::BOILER_WATER_TEMP, value, previousOTCommunicationMs)) {
+        Serial.printf("Flow water temperature from boiler is %.01f %\n", value);
+        // Use a static variable to keep track of the entity already being created
+        static bool flowTemperatureEntityAdded = false;
+          // Create the entity
+        if(!flowTemperatureEntityAdded) {
+          addEntity(client, "sensor", "flow_temperature", EASYOPENTHERM_MQTT_DISCOVERY_MSG_FLOW_TEMPERATURE_SENSOR);
+          flowTemperatureEntityAdded = true;
+        }
+        // Publish the Flow Temperature
+        snprintf(payload, sizeof payload, "{\"flow_temperature\":%.01f}", value);
+        topic = topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_FLOW_TEMPERATURE_SENSOR);
+        publish(client, topic, payload);
       }
-      // Publish the Flow Temperature
-      snprintf(payload, sizeof payload, "{\"flow_temperature\":%.01f}", value);
-      topic = topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_FLOW_TEMPERATURE_SENSOR);
-      publish(client, topic, payload);
-    }
-    // Test if Return Temperature can be read from the boiler
-    if(readSensor(thermostat, OpenTherm::READ_DATA_ID::RETURN_WATER_TEMPERATURE, value, previousOTCommunicationMs)) {
-      Serial.printf("Return water temperature to boiler is %.01f %\n", value);
-      // Use a static variable to keep track of the entity already being created
-      static bool returnTemperatureEntityAdded = false;
-        // Create the entity
-      if(!returnTemperatureEntityAdded) {
-        addEntity(client, "sensor", "return_temperature", EASYOPENTHERM_MQTT_DISCOVERY_MSG_RETURN_TEMPERATURE_SENSOR);
-        returnTemperatureEntityAdded = true;
+
+      // Test if Return Temperature can be read from the boiler
+      if(readSensor(thermostat, OpenTherm::READ_DATA_ID::RETURN_WATER_TEMPERATURE, value, previousOTCommunicationMs)) {
+        Serial.printf("Return water temperature to boiler is %.01f %\n", value);
+        // Use a static variable to keep track of the entity already being created
+        static bool returnTemperatureEntityAdded = false;
+          // Create the entity
+        if(!returnTemperatureEntityAdded) {
+          addEntity(client, "sensor", "return_temperature", EASYOPENTHERM_MQTT_DISCOVERY_MSG_RETURN_TEMPERATURE_SENSOR);
+          returnTemperatureEntityAdded = true;
+        }
+        // Publish the Return Temperature
+        snprintf(payload, sizeof payload, "{\"return_temperature\":%.01f}", value);
+        topic = topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_RETURN_TEMPERATURE_SENSOR);
+        publish(client, topic, payload);
       }
-      // Publish the Return Temperature
-      snprintf(payload, sizeof payload, "{\"return_temperature\":%.01f}", value);
-      topic = topicByReference("state_topic", EASYOPENTHERM_MQTT_DISCOVERY_MSG_RETURN_TEMPERATURE_SENSOR);
-      publish(client, topic, payload);
+
+      // Any other OpenTherm sensor that returns a float (f8.8) can be added in the same way as above by using the correct OpenTherm::READ_DATA_ID::, adding a dicovery JSON in JSONs.h, calling
+      // addEntity with the according parameters and publishing the value to the right topic in the right format
     }
-    // Any other OpenTherm sensor that returns a float (f8.8) can be added in the same way as above by using the correct OpenTherm::READ_DATA_ID::, adding a dicovery JSON in JSONs.h, calling
-    // addEntity with the according parameters and publishing the value to the right topic in the right format
   }
 }
 
@@ -701,17 +718,15 @@ void updateRoomTemperatureStale(bool                    stale) {
 // subscribeAll()
 // Subsbribe to all needed topics: one for the room temperature setpoint, one for the mode (OFF / HEAT / COOL / AUTO) and one for 
 // the actual room temperature
-bool subscribeAll(MqttClient &                          client) {
-  if(client.isConnected()) {
-    subscribe(client, processSetpointTemperatureMessage, EASYOPENTHERM_MQTT_DISCOVERY_MSG_CLIMATE, "temperature_command_topic");
-    subscribe(client, processClimateMessage, EASYOPENTHERM_MQTT_DISCOVERY_MSG_CLIMATE, "mode_command_topic");
-    subscribe(client, processRoomTemperatureMessage, EASYOPENTHERM_MQTT_DISCOVERY_MSG_CLIMATE, "current_temperature_topic");
+bool subscribeAll(PubSubClient &                        client) {
+  if(client.connected()) {
+    subscribe(client, EASYOPENTHERM_MQTT_DISCOVERY_MSG_CLIMATE, "temperature_command_topic");
+    subscribe(client, EASYOPENTHERM_MQTT_DISCOVERY_MSG_CLIMATE, "mode_command_topic");
+    subscribe(client, EASYOPENTHERM_MQTT_DISCOVERY_MSG_CLIMATE, "current_temperature_topic");
 //    subscribe(client, processClimateMessage, EASYOPENTHERM_MQTT_DISCOVERY_MSG_CLIMATE, "preset_mode_command_topic");  // Not implemented yet
-
-    return true;
   }
 
-  return false;
+  return client.connected();
 }
 
 
@@ -743,35 +758,49 @@ void loop() {
 
 
   // Check if we are still connected to the MQTT broker. If not, reconnect and resubscribe to the topics we are interested in
-  if(!mqtt->isConnected()) {
-    ESP_LOGI(TAG, "MQTT disconnected");
-Serial.println("MQTT disconnected");
-		wiFiClient.stop();
-		wiFiClient.connect(mqtt_server, 1883);
-    connectMQTT(*mqtt, MQTT_ID, mqtt_user, mqtt_password);
-    subscribed = false;
+  if(!mqtt->connected()) {
+    Serial.println("MQTT disconnected");
+    // handle the TCP/IP socket connection outside of PubSubClient because of connection issues
+    if(!wiFiClient.connected()) {
+      Serial.printf("WiFi client disconnected, WiFi status = %d\n", WiFi.status());
+//      wiFiClient.stop();
+      wiFiClient.connect(mqtt_server, 1883);
+      if(wiFiClient.connected()) {
+        Serial.println("WiFi client reconnected");
+      }
+    }
+    if(wiFiClient.connected()) {
+      Serial.printf("WiFi client is connected, WiFi status = %d\n", WiFi.status());
+      bool MQTTConnected = connectMQTT(*mqtt, MQTT_ID, mqtt_user, mqtt_password);
+      Serial.printf("MQTT reconnected is %s\n", MQTTConnected ? "true" : "false");
+      subscribed = false;
+    } else {
+        Serial.println("WiFi client did not reconnected");
+    }
   }
 
 // Subscribe to all relevant topics after a new connection
   if(!subscribed) {
+    Serial.println("Subscribe to all relevant MQTT topics...");
     if(subscribeAll(*mqtt)) {
       subscribed = true;
     }
   }
 
-  uint32_t thermostatStateTimestampAligned = ldiv(time(nullptr), PUBLISH_STATE_UPDATE_INTERVAL).quot * PUBLISH_STATE_UPDATE_INTERVAL;    // Align to exact intervals
+  uint32_t thermostatStateTimestampAligned = (time(nullptr) / PUBLISH_STATE_UPDATE_INTERVAL) * PUBLISH_STATE_UPDATE_INTERVAL;    // Align to exact intervals
   uint32_t thermostatStateTimestampMs = millis();
-
   if(millis() - previousOTCommunicationMs >= 1000) {      // OpenTherm specifies that primary to secondary communication should take place at least every second
     // connected() becomes 'true' after communication has taken place between thermostat and boiler and the boiler's configuration flags are read
+
     if(!thermoStateMachine.connected()) {
       // Try to contact the boiler and construct the thermostat's primary flags from the boiler's capabilities
       OpenTherm::CONFIGURATION_FLAGS configurationFlags;
       if(readSecondaryConfiguration(thermostat, configurationFlags, previousOTCommunicationMs)) {
+        Serial.println("OpenTherm secondary connected");
         thermoStateMachine.initPrimaryFlags(configurationFlags);
 
-        updateClimateEntity((uint8_t(configurationFlags) & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_COOLING)) != 0);
-        updateDHWEntity((uint8_t(configurationFlags) & uint8_t(OpenTherm::CONFIGURATION_FLAGS::SECONDARY_DHW_PRESENT)) != 0);
+        updateClimateEntity(((uint8_t) configurationFlags & (uint8_t) OpenTherm::CONFIGURATION_FLAGS::SECONDARY_COOLING) != 0); 
+        updateDHWEntity(((uint8_t) configurationFlags & (uint8_t) OpenTherm::CONFIGURATION_FLAGS::SECONDARY_DHW_PRESENT) != 0); 
       }
     }
 
@@ -829,7 +858,7 @@ Serial.println("MQTT disconnected");
       // Read status in every loop, to meet the 'communication each second' requirement
       if(readStatus(thermostat, primaryFlags, statusFlags, previousOTCommunicationMs)) {
         // Inform Home Assitant directly about the status; is automatically ignored if the flame status or CH / DHW status did not change
-        updateFlameSensor(statusFlags);
+        updateFlameSensor(statusFlags); 
         updateDHWSensor(statusFlags);
       }
     }
@@ -837,9 +866,10 @@ Serial.println("MQTT disconnected");
 
   // Publish the 'interval' sensors' at exact 'PUBLISH_STATE_UPDATE_INTERVAL' intervals
   if(thermostatStateTimestampAligned - publishedThermostatStateTimestamp >= PUBLISH_STATE_UPDATE_INTERVAL) {
-    updateSensors(*mqtt, CHSetpoint, previousOTCommunicationMs);
+    Serial.println("Update sensors by publishing sensor values to MQTT broker...");
+    updateSensors(*mqtt, thermoStateMachine.connected(), CHSetpoint, previousOTCommunicationMs);
     publishedThermostatStateTimestamp = thermostatStateTimestampAligned;
   }
 
-  mqtt->yield(100);
+  mqtt->loop();
 }
