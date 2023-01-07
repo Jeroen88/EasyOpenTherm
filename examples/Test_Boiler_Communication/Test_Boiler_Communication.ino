@@ -32,9 +32,37 @@
 #include <EasyOpenTherm.h>
 
 
-// ESP32-S2
+#if defined(ARDUINO_LOLIN_S2_MINI)
 #define OT_RX_PIN (35)
 #define OT_TX_PIN (33)
+#define DALLAS (11)
+#elif defined(ARDUINO_LOLIN_C3_MINI)
+#define OT_RX_PIN (10)
+#define OT_TX_PIN (8)
+#define DALLAS (4)
+#elif defined(ARDUINO_ESP8266_WEMOS_D1MINIPRO)
+// D1 is GPIO5
+#define OT_RX_PIN (5)
+// D2 is GPIO4
+#define OT_TX_PIN (4)
+// D7 is GPIO13
+#define DALLAS (13)
+#elif defined(ESP32)
+#define OT_RX_PIN (33)
+#define OT_TX_PIN (16)
+#define DALLAS (17)
+#elif defined(ESP8266)
+// GPIO5 is D1
+#define OT_RX_PIN (5)
+// GPIO4 is D2
+#define OT_TX_PIN (4)
+// D7 is GPIO13
+#define DALLAS (13)
+#else
+#define OT_RX_PIN (35)
+#define OT_TX_PIN (33)
+#define DALLAS (-1)
+#endif
 
 
 void setup() {
