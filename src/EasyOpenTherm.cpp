@@ -276,17 +276,17 @@ bool                    OTDataLinkLayer::parity() {
 }
 
 OTDataLinkLayer::MSG_TYPE OTDataLinkLayer::type() {
-  return OTDataLinkLayer::MSG_TYPE(_frame & 0x70000000);
+  return (OTDataLinkLayer::MSG_TYPE)(_frame & 0x70000000);
 }
 
 
 uint8_t                 OTDataLinkLayer::dataID() {
-  return uint8_t((_frame & 0xff0000) >> 16);
+  return (uint8_t)((_frame & 0xff0000) >> 16);
 }
 
 
 uint16_t                OTDataLinkLayer::value() {
-  return uint16_t(_frame & 0xffff);
+  return (uint16_t)(_frame & 0xffff);
 }
 
 
@@ -327,7 +327,7 @@ bool                    OTDataLinkLayer::_parity(uint32_t                     fr
   frame ^= frame >> 4;
   frame ^= frame >> 2;
   frame ^= frame >> 1;
-  return (~frame) & 1;
+  return ((~frame) & 1) == 1;
 }
 
 
@@ -376,7 +376,8 @@ bool                    OTPhysicalLayer::send(uint32_t                        fr
     return false;
   }
 
-  if(_state == STATE::READY && millis() - _lastReceivedTimestampMs < 100) {
+//  if(_state == STATE::READY && millis() - _lastReceivedTimestampMs < 100) {
+  if(_state == STATE::READY && millis() - _lastReceivedTimestampMicros < 100) {
 
     return false;     // Wait at least 100 ms after receiving the final bit of the latest frame before sending a new frame
   }
@@ -393,8 +394,10 @@ bool                    OTPhysicalLayer::send(uint32_t                        fr
 
   digitalWrite(_txPin, HIGH);       // idle
 
+  noInterrupts();      //\\//
   _frame = 0;
   _state = STATE::WAITING;
+  interrupts();        //////
 
   _lastSentTimestampMs = millis();
 
@@ -407,7 +410,9 @@ bool                    OTPhysicalLayer::receive(uint32_t &                   fr
 
   if(_state != STATE::READY) {                                // ::handleInterrupt() will set _state to STATE::READY upon receiving a complete frame (including start and stop bits)
     if(_primary && millis() - _lastSentTimestampMs > 800) {   // ::send() will set _lastSentTimestampMs to after sending the final bit. A secondary never times out, it keeps on listning to the primary
+      noInterrupts();      //\\//
       _state = STATE::INVALID;    // timeout
+      interrupts();        //////
     }
 
     return false;
@@ -420,7 +425,9 @@ bool                    OTPhysicalLayer::receive(uint32_t &                   fr
 
 
 void                    OTPhysicalLayer::reset() {
+  noInterrupts();      //\\//
   _state = STATE::INVALID;
+  interrupts();        //////
 }
 
 
@@ -478,7 +485,8 @@ void                    OTPhysicalLayer::handleInterrupt() {
         lastTimestamp = timestamp;
         mask >>= 1;
       } else {                                // stop bit
-        _lastReceivedTimestampMs = millis();
+//        _lastReceivedTimestampMs = millis();
+        _lastReceivedTimestampMicros = micros();
         _state = STATE::READY;
       }
     }
