@@ -1,3 +1,32 @@
+/*
+ *    https://github.com/Jeroen88/EasyOpenTherm
+ *    https://www.tindie.com/products/Metriot/OpenTherm-adapter/
+ *
+ *    Test_Boiler_Communication is a program to test if your MCU can communicate with your OpenTherm compatible HVAC
+ *    Copyright (C) 2022  Jeroen Döll <info@metriot.nl>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ *    You need an OpenTherm controller that you can buy at my Tindie store, see <https://www.tindie.com/products/jeroen88/opentherm-controller/>
+ *    Connect the two HVAC wires to the OpenTherm controller pins marked OT. The order is not important.
+ *    Connect the OpenTherm controller to your microcontroller's power (3v3) and ground (GND) pins.
+ *    Connect the OpenTherm TXD pin to the microcontroller's pin defined by #define OT_RX_PIN.
+ *    Connect the OpenTherm RXD pin to the microcontroller's pin defined by #define OT_TX_PIN.
+*/
+
+
+
 #include <EasyOpenTherm.h>
 
 #if defined(ARDUINO_LOLIN_S2_MINI)

@@ -41,6 +41,7 @@
  */
 
 /* IMPORTANT NOTICES
+ * The other example, 'Advanced_Thermostat.ino' is more recent, and more up-to-date. You should better take that example, even if you do not use Home Assistant. 
  * You have to do a lot of configuration to get this running! It is not difficult, but you have to be diligent.
  * This example uses a certificate to autenticate the MQTT server and to ecnrypt the connection using TLS (Transport Layer Security) with a WiFiClientSecure.
  * If you do not want to use this feature, because e.g. your MQTT broker does not support it, you have to adapt this program:
@@ -55,17 +56,17 @@
  *
  * You MUST use a BME280 temperature sensor board and provide the I2C address of your sensor and the GPIO pins it is connected to (#define BME_ADDRESS,
  * #define I2C_SDA_PIN and I2C_SCL_PIN)
- * You MAY use a completely different sensor, e.g a BME680 or even a Dallas temperature sensor) but then you MUST  adapt the program accordingly
+ * You MAY use a completely different sensor, e.g a BME680 or even a Dallas temperature sensor (or even use a temperature received from 'somewhere else') but 
+ * then you MUST adapt the program accordingly
  * 
  * You MUST provide your WiFi credentials (const char * ssid and const char * password)
  *
- * You MUST provide your MQTT server, MQTT user name and MQTT password (const char * mqtt_server, const char * mqtt_user and 
- * const char * mqtt_password)
+ * You MUST provide your MQTT server, MQTT user name and MQTT password (const char * mqtt_server, const char * mqtt_user and const char * mqtt_password)
  *    This thermostat publishes the corrected measured room temperature to the MQTT broker in topic 'temperature'
  *    It subscribes to topic 'room_temperature_setpoint' to receive the room temperature setpoint. This temperature is not persistant. If you restart the
  *    program, you have to resend it.
  *
- * You MUST provide the CA certificate of your MQTT server (unless you use an insecure connection, see above, const char CACertificate[]) 
+ * You MUST provide the CA certificate of your MQTT server (unless you use an insecure connection, see above), const char CACertificate[]
  *
  * You SHOULD calibrate your sensor by measuring a low temperature (e.g. 15 *C, not very critical) and a high temperature (e.g. 20 *C, again not critical) 
  * with both the temperature sensor and a calibrated thermomter. Store the results into #define LOWER_MEASURED_TEMPERATURE, LOWER_CALIBRATED_TEMPERATURE, 
@@ -80,7 +81,8 @@
  *    using low temperature radiators e.g to 40.0 *C. If it takes too long to warm your house on a very cold winter day, increase to 60.0 *C or even higher
  *    in a badly insulated house. Check your boiler manual for the right maximum temperature.
  *
- * I hope you enjoy working with this library, pPlease share ideas in the Github Discussions sessions of this library.
+ * I hope you enjoy working with this library, pPlease share ideas in the Github Discussions sessions of this library 
+ * (https://github.com/Jeroen88/EasyOpenTherm/discussions)
  */ 
 
 #include <Arduino.h>

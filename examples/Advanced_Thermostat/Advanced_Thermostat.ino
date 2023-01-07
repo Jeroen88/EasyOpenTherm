@@ -5,7 +5,7 @@
  *    This software needs an OpenTherm controller like 
  *    https://www.tindie.com/products/Metriot/OpenTherm-adapter/ or
  *    https://www.tindie.com/products/Metriot/OpenTherm-adapter/ connected to a BOILER  SUPPORTING
- *    THE OPENTHERM PROTOCOL, an ESP32-S2 mini, ESP32-C3 mini or ESP-D1 mini flashed with this 
+ *    THE OPENTHERM PROTOCOL, an ESP32-S2 mini, ESP32-C3 mini or ESP8266 flashed with this 
  *    software and Home Assistant or any other MQTT enabled home automation environment.
  *
  *    MQTT_Advanced_Thermostat is a real working thermostat over MQTT. It offers a HIGH LEVEL API
@@ -24,9 +24,10 @@
  *    - Change the WiFi credentials and MQTT credentials in this software
  *    - Flash this software to a ESP32-S2 mini, connect the ESP to the OpenTherm Adapter and connect the
  *      OpenTherm Adapter to the boiler with the two wires of your present thermostat (replace it)
+ *    - See also both README.md's in the main and Examples directory
  *    THAT'ALL, all integrations should automatically appear in Home Assistant and be active!
-
- *    Although it is designed to work with Home Assistant and it's MQTT integration, it can fucntion
+ *     
+ *    Although it is designed to work with Home Assistant and it's MQTT integration, it can function
  *    in any home automation system as long as it has an MQTT integration.
  *    This program is developed and tested for a boiler, but could be easily adapted to work with HVAC
  *    systems too.
@@ -49,15 +50,15 @@
  *    any leading or trailing spaces, in capitals, e.g. HEAT.
  *    
  *    This thermostat publishes to a MQTT topic, Metriot/EasyOpenTherm/112233445566/climate/state
- *    the local temperature measures by an onboard sensor. The value message is a JSON, e.g.:
- *    {"local_temperature": 20.1}. The software already has support for a Dallas Sensor that can be
+ *    the local temperature measures by an onboard sensor (if enabled). The value message is a JSON, 
+ *    e.g.: {"local_temperature": 20.1}. The software already has support for a Dallas Sensor that can be
  *    enabled by defining the one wire pin the sensor is connected to (const int oneWireBus). If you want
- *    to use this temerature as room temperature, you have to write an automationm that subscribes to the
+ *    to use this temperature as room temperature, you have to write an automation that subscribes to the
  *    above topic, extracts the temperature and publishes it in the right format to the room temperature
- *    update topic.
+ *    update topic (see above).
  *    
  *    Unlike other examples on the internet, MQTT_Advanced_Thermostat already is a fully functional 
- *    thermostat: just configure it once change, regularly publish teh room temperature and update the the 
+ *    thermostat: just configure it once change, regularly publish the room temperature and update the the 
  *    room temperature setpoint any time your boiler to heat up the room to that setpoint.
  *
  *    Use your home automation system, like Home Assistant or Domoticz, to create e.g. schedules
@@ -90,12 +91,12 @@
  *    Connect the OpenTherm RXD pin to the microcontroller's pin defined by #define OT_TX_PIN.
  *
  *    You can also use this shield  <https://www.tindie.com/products/jeroen88/opentherm-controller/> and an
- *    ESP32-S2 mini, an ESP32-C3 mini or an ESP D1 mini. With this shield all pins are already connected. The only thing you 
- *    have to connect are the two OpenTherm thermostat wires.
+ *    ESP32-S2 mini, an ESP32-C3 mini or an ESP D1 mini (the latter not tested yet). With this shield all pins are already 
+ *    connected. The only thing you have to connect are the two OpenTherm thermostat wires.
  *
  *    If needed, connect a Dallas Temperature Sensor to the right pin or, if you use the above shield, use the onboard sensor.
  *    Make sure though that the mesured temperature is not influenced too much by the heat produced by the processor. An 
- *    ESP32-S2 e.g. becomes too hot.
+ *    ESP32-S2 e.g. becomes too hot and is too close to the sensor to produce valid readings.
  *    Any other temperature sensor may be used, like a BME280, BME380, BMP380, BME680 if you adapt the program accordingly.
  *
  *    I hope you enjoy working with this library, please share ideas in the Github Discussions sessions of this library.
