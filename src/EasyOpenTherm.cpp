@@ -432,7 +432,13 @@ void                    OTPhysicalLayer::sendBit(uint8_t                      va
 }
 
 
- void                   OTPhysicalLayer::handleInterrupt() {
+#if defined(ESP32)
+void IRAM_ATTR          OTPhysicalLayer::handleInterrupt() {
+#elif defined(ESP8266)
+void ICACHE_RAM_ATTR    OTPhysicalLayer::handleInterrupt() {
+#else
+void                    OTPhysicalLayer::handleInterrupt() {
+#endif
   static volatile uint32_t lastTimestamp;
   static volatile uint32_t mask;
 
