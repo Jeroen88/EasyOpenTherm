@@ -1,7 +1,7 @@
 # OpenTherm Arduino ESP32/ESP8266 Library
 Was already working on an ESP32, now ready for an ESP8266 too!
 
-Create your own thermostat with this library and save money on your energy bills while reducing your carbon footprint!
+Create your own thermostat with this library and save money on your energy bills while reducing your carbon footprint! Or use a home automation system like Home Assistant and smart thermostatic valves to heat up each room individually.
 
 The library complies with the OpenTherm specification. Control any (condensing) boiler or air conditioner (HVAC) that also meets the OpenTherm specification.
 

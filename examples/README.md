@@ -1,27 +1,43 @@
 # Examples for OpenTherm Arduino ESP32 Library
 
-Several examples are given, all fully functional, from very basic to advanced. The first thing you should always do is to run Test_Boiler_Communication.ino or Test_HVAC_Communication.ino, to make sure your [OpenTherm controller](https://www.tindie.com/products/jeroen88/opentherm-controller/) or [OpenTherm controller Shield](https://www.tindie.com/products/jeroen88/opentherm-shield/) is correctly wired, the right GPIO pins are configured and the secondary boiler or HVAC is responding to the requests of the primary thermostat.
+Several examples are given, all fully functional, from very basic to advanced. The **first thing you should always do** is to run Test_Boiler_Communication.ino or Test_HVAC_Communication.ino, to make sure your [OpenTherm controller board](https://www.tindie.com/products/jeroen88/opentherm-controller/) or [OpenTherm controller Shield](https://www.tindie.com/products/jeroen88/opentherm-shield/) is correctly wired, the right GPIO pins are configured and the 'secondary', i.e. the boiler or HVAC, is responding to the requests of the 'primary', i.e. the thermostat.
 
 ## Test_Boiler_Communication.ino and Test_HVAC_Communication.ino
 Basic test of your setup. If everything is OK, you will see:
 ```
 Your setup is working! A frame was send to the boiler and the boiler responded with a valid frame.
 ```
-together with some more information.\
-The Test_HVAC_Communication.ino program is **not tested** because I do not own such a device.
+together with some more information.
+If you do not see this line:
+- Is the EasyOpenTherm board correctly wired? Is the pin you defined with ```#define OT_RX_PIN``` connected to **TxD** of the board? Is the pin you defined ```#define OT_TX_PIN```  connected to **RxD** of the board? Is GND of the EasyOpenTherm your connected to a GND pin of your ESP32 or ESP8266 board? Is 3v3 of the EasyOpenTherm board connected to 3v3 of your ESP32 or ESP8266 board? For an EasyOpenTherm shield you can skip this step.
+- For the EasyOpenTherm board, are the pins marked OT connected to the thermostat wires of your boiler? For the EasyOpenTherm shield, are the thermostat wires of your boiler connected to the green screw terminal?
+- Did you _remove_ the "normal" thermostat? (The OpenTherm protocol supports _only one_ thermostat on the bus)
+- Does the pin you selected with ```#define OT_RX_PIN``` support interrupts?
+- Does the pin you selected with ```#define OT_TX_PIN``` support ```OUTPUT``` (not input only)
+- Does your boiler support the OpenTherm protocol?
+
+The Test_HVAC_Communication.ino program is **not tested** because I do not own such a device. You should see:
+```
+Your setup is working! A frame was send to the HVAC and the HVAC responded with a valid frame.
+```
+If you do not see this line do the same checks as above for the boiler.
 
 ## MQTT_Advanced_Thermostat.ino
 ![Home Assistant logo](https://raw.githubusercontent.com/home-assistant/assets/master/logo/logo-small.png)
-![MQTT logo](https://brands.home-assistant.io/_/mqtt/logo.png)\
+![Home Assistant Thermostat Card](https://www.home-assistant.io/images/dashboards/thermostat_card.gif) 
+![MQTT logo](https://brands.home-assistant.io/_/mqtt/logo.png)
+
+**If you already know how to flash an microcontroller from the Arduino IDE and already have Home Assistant installed with the MQTT integration, the thermostat should be up and running in minutes!**
 
 The Advanced_Thermostat.ino example is specially designed for Home Assistant with a MQTT integration. This example can also be used with other home automation software that supports MQTT. although auto discovery of the thermostat and the sensors will not work in this case.
 ### Prerequisites
-- An OpenTherm controller connected to the thermostat wires
+- An OpenTherm controller board or shield correctly connected to the thermostat wires
 - Home Assistant installed
 - A MQTT broker, preferably [Mosquitto](https://github.com/home-assistant/addons/blob/master/mosquitto/DOCS.md)
 - The [MQTT integration](https://www.home-assistant.io/integrations/mqtt/) added to Home Assistant
-- An ESP32, e.g. an ESP32-S2 mini, flashed with  Advanced_Thermostat.ino. Before flashing, first set your WiFi network name and password, and your MQTT broker hostname or IP address, MQTT user name and MQTT password
-- A thermometer in Home Assistant and an automation to forward the room temperature to the Thermostat using a Home Assistant Automation (Settings -> Automations & Scenes -> + Create Automation. Start with an empty automation, click the three dots in the upper right corner and select: Edit in YAML). Add:
+- The [Arduino IDE installed](https://docs.arduino.cc/software/ide-v2/tutorials/getting-started/ide-v2-downloading-and-installing) on your computer
+- An ESP32, e.g. an ESP32-S2 mini, flashed with Advanced_Thermostat.ino (can be opened from the examples: File -> Examples, scroll all the way down to 'EasyOpenTherm' and select 'Advanced_Thermostat'). Before flashing, first set your WiFi network name and password in the progam, and your MQTT broker hostname or IP address, MQTT user name and MQTT password
+- A thermometer in Home Assistant, and an automation to forward the room temperature to the Thermostat using a Home Assistant Automation (Settings -> Automations & Scenes -> + Create Automation. Start with an empty automation, click the three dots in the upper right corner and select: Edit in YAML). Add:
 ```
 alias: Publish room temperature
 description: Publish room temperature to MQTT Climate state
@@ -40,12 +56,13 @@ Replace the entity_id with the id of your thermometer and replace '22b5ea03f784'
 The thermostat (Climate) integration is automatically added to Home Assistant, together with several sensors.
 ### Thermostat behaviour
 - The thermostat is enabled in Home Assistant if it communicates with an OpenTherm boiler
-- The thermostat shows the room temperature if it receives temperature updates over MQTT
+- The thermostat shows the room temperature if it receives temperature updates over MQTT (and is enabled, see previous step)
 - The desired room temperature, the room temperature setpoint, can be set by turning the dial
 - As long as the thermostat is switched off it will never start heating
 - Press the flame below the dial to turn the thermostat on
 - If the room temperature is below setpoint (minus a 0.1 ºC deadzone) the boiler will start heating
 - If the boiler switches off after running for a while, it will stay off for at least 10 minutes (Anti Hunting interval)
+- If the thermostat does not receive temperature updates for more than 15 minutes, it will switch to 'idle', to prevent your house from being heated if the thermometer fails
 
 ### Sensors
 The following sensors are always added:
@@ -75,25 +92,26 @@ Message 42 received on Metriot/EasyOpenTherm/cc031c4e76a0/climate/state at 6:22 
 You could blow into the thermometer to force a temperature update from the thermometer, that should inmediately appear in the MQTT messages.
 
 ### Saving energy and money
-The intention of the thermostat is to save energy and to save money. I can not guarantee though that this will also be the case in your setup. The thermostat can be tweaked to serve your needs by setting the options, most of these ```#defines``` are found in the main program and in ThermoStateMachine.cpp. Wrting your own thermostat software from scratch is also an option ofcourse.\
-Home Assistant can be used for geo fencing and smart schemes to switch the boiler on and off.
+The intention of the thermostat is to save energy and to save money. I can not guarantee though that this will also be the case in your setup. The thermostat can be tweaked to serve your needs by setting the options, most of these ```#defines``` are found in the main program and in ThermoStateMachine.cpp. Wrting your own thermostat software from scratch is also an option ofcourse.
+
+Home Assistant can be used for geo fencing, smart schemes to switch the boiler on and off, or e.g. to control the temperature in each of your rooms individually!
 
 ### Using Advanced_Thermostat.ino in other MQTT enabled home automation systems
-The Advanced_Thermostat.ino can also be used in other MQTT enabled home automation systems. In this case the auto discovery of the Thermostat and the sensors will not work. But the thermostat can be controlled by publishing and subscribing to the right topics. In all below topics the hex number 22b5ea03f784 needs to be changed into the right number for your ESP32 (all small caps)
+The Advanced_Thermostat.ino can also be used in other MQTT enabled home automation systems. In this case the auto discovery of the Thermostat and the sensors will not work. But the thermostat can be controlled by publishing and subscribing to the right topics. In all below topics the hex number 22b5ea03f784 needs to be changed into the right number for your ESP32 or ESP8266 (all small caps)
 
 Topics to publish to:
 - Metriot/EasyOpenTherm/22b5ea03f784/climate/state: publish the room temperature in JSON format ```{"temperature": 19.8}```
-- Metriot/EasyOpenTherm/22b5ea03f784/mode/set: publish ```off``` to switch the thermostat off, ```heat``` to switch it on
+- Metriot/EasyOpenTherm/22b5ea03f784/mode/set: publish ```off``` to switch the thermostat off, ```heat``` to switch it on (on means: the thermostat is running and decides upon various parameters to switch your boiler on. It does not mean: start the boiler inmediately)
 - Metriot/EasyOpenTherm/22b5ea03f784/setpoint/set: publish the desired room temperature (room temperature setpoint) in plain text format, e.g. ```20.8```
 
 Topics to subscribe to:
 - Metriot/EasyOpenTherm/22b5ea03f784/flame/state: to receive 'flame' updates of the format ```{"flame":"OFF"}```
 - Metriot/EasyOpenTherm/22b5ea03f784/RSSI/state: to receive 'RSSI' updates of the format ```{"RSSI":-57}```
 - Metriot/EasyOpenTherm/22b5ea03f784/ch_setpoint/state: to receive 'central heating setpoint' updates of the format ```{"ch_setpoint":10.0}```
-- Metriot/EasyOpenTherm/22b5ea03f784/flow_temperature/state: to receive 'flow temperature' updates of the format ```{"flow_temperature":25.7}```
-- Metriot/EasyOpenTherm/22b5ea03f784/return_temperature/state: to receive 'return temperature' updates of the format ```{"return_temperature":25.5}```
-- Metriot/EasyOpenTherm/22b5ea03f784/relative_modulation/state: to receive 'relative modulation' updates of the format  ```{"relative_modulation":0.0}```
-- Metriot/EasyOpenTherm/22b5ea03f784/water_pressure/state: to receive 'water pressure' updates of the format  ```{"water_pressure":2.2}```
+- Metriot/EasyOpenTherm/22b5ea03f784/flow_temperature/state: to receive 'flow temperature' updates of the format ```{"flow_temperature":25.7}``` (if supported by your boiler)
+- Metriot/EasyOpenTherm/22b5ea03f784/return_temperature/state: to receive 'return temperature' updates of the format ```{"return_temperature":25.5}``` (if supported by your boiler)
+- Metriot/EasyOpenTherm/22b5ea03f784/relative_modulation/state: to receive 'relative modulation' updates of the format  ```{"relative_modulation":0.0}``` (if supported by your boiler)
+- Metriot/EasyOpenTherm/22b5ea03f784/water_pressure/state: to receive 'water pressure' updates of the format  ```{"water_pressure":2.2}``` (if supported by your boiler)
 
 ### Modifing Advanced_Thermostat.ino for HVACs
 It should be possible to modify the program to work with HVACs. It should be relatively straight forward (maybe a flag can_heat must be added, the right status should be used, the flags need adaptations and the DATA-IDs need to be changed, to name a few). I do not have a HVAC, but maybe I can help and publish a HVAC example too.
