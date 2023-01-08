@@ -527,8 +527,7 @@ private:
 
   volatile uint32_t       _frame;
   uint32_t                _lastSentTimestampMs;
-//  volatile uint32_t       _lastReceivedTimestampMs;
-  volatile uint32_t       _lastReceivedTimestampMicros;
+  volatile uint32_t       _lastReceivedTimestampMs;
 
   uint8_t                 _rxPin;
   uint8_t                 _txPin;

@@ -376,8 +376,7 @@ bool                    OTPhysicalLayer::send(uint32_t                        fr
     return false;
   }
 
-//  if(_state == STATE::READY && millis() - _lastReceivedTimestampMs < 100) {
-  if(_state == STATE::READY && millis() - _lastReceivedTimestampMicros < 100) {
+  if(_state == STATE::READY && millis() - _lastReceivedTimestampMs < 100) {
 
     return false;     // Wait at least 100 ms after receiving the final bit of the latest frame before sending a new frame
   }
@@ -485,8 +484,7 @@ void                    OTPhysicalLayer::handleInterrupt() {
         lastTimestamp = timestamp;
         mask >>= 1;
       } else {                                // stop bit
-//        _lastReceivedTimestampMs = millis();
-        _lastReceivedTimestampMicros = micros();
+        _lastReceivedTimestampMs = millis();
         _state = STATE::READY;
       }
     }
